@@ -12,7 +12,7 @@ sure your Pi meets the [requirements](/getting-started/overview/) first. In shor
 On the Pi (over SSH or at the console):
 
 ```sh
-curl -fsSL https://github.com/MateEke/picture-frame/releases/latest/download/install.sh | sudo bash
+curl -fsSL https://github.com/webbms72/picture-frame/releases/latest/download/install.sh | sudo bash
 ```
 
 That's the whole thing. The installer:
@@ -95,7 +95,7 @@ The installer takes flags for unattended or customized setups. A few of the comm
 A fully unattended install looks like:
 
 ```sh
-curl -fsSL https://github.com/MateEke/picture-frame/releases/latest/download/install.sh \
+curl -fsSL https://github.com/webbms72/picture-frame/releases/latest/download/install.sh \
   | sudo bash -s -- --yes --app-password 'choose-something' --ssid 'Frame-Setup'
 ```
 
