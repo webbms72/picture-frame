@@ -76,6 +76,9 @@ func TestLoadDefaults(t *testing.T) {
 	if cfg.Slideshow.PairThreshold != 1.5 {
 		t.Errorf("slideshow pair_threshold: got %v, want 1.5", cfg.Slideshow.PairThreshold)
 	}
+	if cfg.Slideshow.BlurredFill {
+		t.Error("slideshow blurred_fill should default to false")
+	}
 	if cfg.Library.Immich.SyncInterval.Duration != 15*time.Minute {
 		t.Errorf("immich sync_interval: got %v, want 15m", cfg.Library.Immich.SyncInterval)
 	}
@@ -106,6 +109,21 @@ timezone = "Europe/Budapest"
 	}
 	if cfg.Display.Timezone != "Europe/Budapest" {
 		t.Errorf("timezone: got %q, want Europe/Budapest", cfg.Display.Timezone)
+	}
+}
+
+func TestLoadSlideshowBlurredFill(t *testing.T) {
+	dir := t.TempDir()
+	userPath := write(t, dir, "config.toml", `
+[slideshow]
+blurred_fill = true
+`)
+	cfg, err := config.Load(userPath, filepath.Join(dir, "overrides.toml"))
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if !cfg.Slideshow.BlurredFill {
+		t.Error("slideshow.blurred_fill: got false, want true")
 	}
 }
 

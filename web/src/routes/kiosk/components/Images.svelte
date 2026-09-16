@@ -29,6 +29,8 @@
 	const bottomNames = $derived(splitKey(fader.bottomSrc));
 	const topNames = $derived(splitKey(fader.topSrc));
 
+	const blurredFill = $derived(sse.kiosk?.blurred_fill ?? false);
+
 	onDestroy(() => fader.stop());
 </script>
 
@@ -37,6 +39,7 @@
 	class="fixed top-0 left-0 transform-gpu"
 	data-testid="kiosk-slide-bottom"
 	images={bottomNames}
+	{blurredFill}
 	testId="kiosk-img-bottom"
 	onAllLoad={() => fader.onBottomLoad()}
 	onError={() => fader.onBottomError()}
@@ -52,6 +55,7 @@
 		if (e.propertyName === 'opacity') fader.onTransitionEnd();
 	}}
 	images={topNames}
+	{blurredFill}
 	onAllLoad={() => fader.onTopLoad()}
 	onError={() => fader.onTopError()}
 />

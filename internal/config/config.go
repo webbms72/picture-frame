@@ -104,6 +104,9 @@ type SlideshowConfig struct {
 	// is the aspect deviation factor (>1) at which a photo counts as an outlier.
 	SplitScreen   bool    `toml:"split_screen"`
 	PairThreshold float64 `toml:"pair_threshold"`
+	// BlurredFill shows each photo at its full, uncropped aspect ratio with a
+	// heavily blurred, scaled copy of the same photo filling the letterbox gap.
+	BlurredFill bool `toml:"blurred_fill"`
 }
 
 // Known display backend names.

@@ -40,6 +40,17 @@ a frame to portrait pairs landscape photos instead. How far a photo's shape must
 pairs is `slideshow.pair_threshold` in the [configuration reference](/reference/configuration/),
 and the default suits most screens.
 
+## Blurred fill
+
+**Blurred fill** is another way to avoid cropping: instead of pairing mismatched photos side by
+side, each photo shows at its full, uncropped aspect ratio, with a heavily blurred and zoomed copy
+of the same photo filling the gap on either side (or above and below, for a portrait photo on a
+landscape screen).
+
+The toggle is off by default (`slideshow.blurred_fill`). It works alongside split-screen pairing
+rather than replacing it — a paired photo is shown uncropped already, so blurred fill mainly
+affects lone photos whose shape doesn't match the screen.
+
 ## Turning the screen off when idle
 
 **Turn screen off when idle** blanks the panel after a stretch with no motion, and motion

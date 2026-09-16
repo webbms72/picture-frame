@@ -176,6 +176,33 @@ func TestPutConfigSplitScreenIsLive(t *testing.T) {
 	}
 }
 
+func TestPutConfigBlurredFillIsLive(t *testing.T) {
+	saved := defaultSaved()
+	srv, lc, restartCalls := makeConfigServer(t, saved)
+
+	// Toggling blurred-fill re-publishes the kiosk SSE event live; never a restart.
+	body := putBody(t, saved, func(dto *map[string]any) {
+		(*dto)["slideshow"].(map[string]any)["blurred_fill"] = true
+	})
+	rec := doJSONPut(srv, "/api/config", body)
+	if rec.Code != http.StatusOK {
+		t.Fatalf("status: got %d; body: %s", rec.Code, rec.Body)
+	}
+	if lc.calls.Load() != 1 {
+		t.Errorf("ApplyLive: called %d times, want 1", lc.calls.Load())
+	}
+	if restartCalls.Load() != 0 {
+		t.Error("Restart must not be called on PUT")
+	}
+	var resp map[string]any
+	if err := json.Unmarshal(rec.Body.Bytes(), &resp); err != nil {
+		t.Fatalf("decode: %v", err)
+	}
+	if resp["restart_pending"] != false {
+		t.Errorf("blurred_fill change: restart_pending must be false, got %v", resp["restart_pending"])
+	}
+}
+
 func TestPutConfigRestartPendingForNonTier1(t *testing.T) {
 	saved := defaultSaved()
 	srv, _, _ := makeConfigServer(t, saved)

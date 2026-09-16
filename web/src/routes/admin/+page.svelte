@@ -143,6 +143,7 @@
 			aspect={sse.screenAspect}
 			interval={data.config?.slideshow.interval ?? ''}
 			shuffle={data.config?.slideshow.randomize ?? false}
+			blurredFill={data.config?.slideshow.blurred_fill ?? false}
 		/>
 
 		<div class="flex flex-col gap-3 md:h-full">

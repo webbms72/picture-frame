@@ -627,6 +627,9 @@
       "KioskPayload": {
         "additionalProperties": false,
         "properties": {
+          "blurred_fill": {
+            "type": "boolean"
+          },
           "hide_clock_date": {
             "type": "boolean"
           },
@@ -662,7 +665,8 @@
           "timezone",
           "sensors",
           "weather",
-          "labels"
+          "labels",
+          "blurred_fill"
         ],
         "type": "object"
       },
@@ -1115,6 +1119,10 @@
       "SlideshowDTO": {
         "additionalProperties": false,
         "properties": {
+          "blurred_fill": {
+            "description": "Show each photo at its full aspect ratio with a blurred, scaled copy of itself filling the gap instead of cropping",
+            "type": "boolean"
+          },
           "images_dir": {
             "type": "string"
           },
@@ -1134,6 +1142,7 @@
           "interval",
           "randomize",
           "split_screen",
+          "blurred_fill",
           "images_dir"
         ],
         "type": "object"

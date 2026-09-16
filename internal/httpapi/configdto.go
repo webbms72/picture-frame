@@ -101,6 +101,7 @@ type SlideshowDTO struct {
 	Interval    string `json:"interval" doc:"Image advance interval, e.g. \"2m\""`
 	Randomize   bool   `json:"randomize"`
 	SplitScreen bool   `json:"split_screen" doc:"Pair mismatched-orientation photos side-by-side"`
+	BlurredFill bool   `json:"blurred_fill" doc:"Show each photo at its full aspect ratio with a blurred, scaled copy of itself filling the gap instead of cropping"`
 	ImagesDir   string `json:"images_dir"`
 }
 
@@ -202,6 +203,7 @@ func toDTO(cfg config.Config) ConfigDTO {
 			Interval:    durString(cfg.Slideshow.Interval.Duration),
 			Randomize:   cfg.Slideshow.Randomize,
 			SplitScreen: cfg.Slideshow.SplitScreen,
+			BlurredFill: cfg.Slideshow.BlurredFill,
 			ImagesDir:   cfg.Slideshow.ImagesDir,
 		},
 		Library: LibraryDTO{
@@ -341,6 +343,7 @@ func applySlideshowDTO(dst *config.SlideshowConfig, dto SlideshowDTO) error {
 	dst.Interval = interval
 	dst.Randomize = dto.Randomize
 	dst.SplitScreen = dto.SplitScreen
+	dst.BlurredFill = dto.BlurredFill
 	// The toggle-only DTO omits pair_threshold; coerce an invalid running value so
 	// enabling split-screen can't produce a config that fails Validate (>1 required).
 	if dst.SplitScreen && dst.PairThreshold <= 1 {
@@ -493,6 +496,7 @@ func KioskEventPayload(cfg config.Config, weatherActive bool) state.KioskPayload
 		Sensors:       config.SensorKeys(cfg.Sensors),
 		Weather:       weatherActive,
 		Labels:        labelsToState(cfg.Display.Labels),
+		BlurredFill:   cfg.Slideshow.BlurredFill,
 	}
 }
 

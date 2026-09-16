@@ -26,6 +26,7 @@
 	const motion = $derived(hasMotionSensor(sensors));
 	const randomizeChanged = $derived(slideshow.randomize !== savedSlideshow.randomize);
 	const splitChanged = $derived(slideshow.split_screen !== savedSlideshow.split_screen);
+	const blurredFillChanged = $derived(slideshow.blurred_fill !== savedSlideshow.blurred_fill);
 	// structural compare so a new label field is covered without touching this
 	const labelsChanged = $derived(!eq(display.labels, savedDisplay.labels));
 </script>
@@ -58,6 +59,15 @@
 		onchange={(v) => (slideshow.split_screen = v)}
 		onrevert={() => (slideshow.split_screen = savedSlideshow.split_screen)}
 		testId="split-screen-switch"
+	/>
+
+	<ToggleRow
+		label="Blurred fill (no cropping)"
+		checked={slideshow.blurred_fill}
+		changed={blurredFillChanged}
+		onchange={(v) => (slideshow.blurred_fill = v)}
+		onrevert={() => (slideshow.blurred_fill = savedSlideshow.blurred_fill)}
+		testId="blurred-fill-switch"
 	/>
 
 	<DurationSlider

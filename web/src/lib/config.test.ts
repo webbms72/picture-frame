@@ -35,7 +35,13 @@ const sampleConfig = {
 		timezone: '',
 		labels: { outside: '', inside: '', humidity: '' }
 	},
-	slideshow: { interval: '2m0s', randomize: false, split_screen: true, images_dir: 'images' },
+	slideshow: {
+		interval: '2m0s',
+		randomize: false,
+		split_screen: true,
+		blurred_fill: false,
+		images_dir: 'images'
+	},
 	library: {
 		backend: 'fs' as const,
 		immich: {

@@ -35,6 +35,7 @@ func copyTier1(dst *config.Config, src config.Config) {
 	dst.Slideshow.Randomize = src.Slideshow.Randomize
 	dst.Slideshow.SplitScreen = src.Slideshow.SplitScreen // slideshow.SetSplitConfig
 	dst.Slideshow.PairThreshold = src.Slideshow.PairThreshold
+	dst.Slideshow.BlurredFill = src.Slideshow.BlurredFill // re-published on the kiosk SSE event
 	dst.Weather.PollInterval = src.Weather.PollInterval
 	dst.Weather.RetryInterval = src.Weather.RetryInterval
 }
