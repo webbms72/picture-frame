@@ -34,6 +34,9 @@ func TestKioskEventPayload(t *testing.T) {
 	if got.Labels != wantLabels {
 		t.Errorf("labels: got %+v, want %+v", got.Labels, wantLabels)
 	}
+	if !got.BlurredFill {
+		t.Error("blurred_fill: want true (set in fullTestConfig)")
+	}
 
 	if KioskEventPayload(cfg, false).Weather {
 		t.Error("weather: want false when not weatherActive")
@@ -55,9 +58,10 @@ func fullTestConfig() config.Config {
 			Labels:        config.KioskLabelsConfig{Outside: "Kint", Inside: "Bent", Humidity: "Pára"},
 		},
 		Slideshow: config.SlideshowConfig{
-			Interval:  config.Duration{Duration: 2 * time.Minute},
-			Randomize: true,
-			ImagesDir: "images",
+			Interval:    config.Duration{Duration: 2 * time.Minute},
+			Randomize:   true,
+			BlurredFill: true,
+			ImagesDir:   "images",
 		},
 		Library: config.LibraryConfig{
 			Backend: config.BackendFS,
@@ -184,6 +188,25 @@ func TestToDTOZeroDurationIsEmpty(t *testing.T) {
 
 	if dto.Sensors[0].PollInterval != "" {
 		t.Errorf("zero poll_interval should be empty string, got %q", dto.Sensors[0].PollInterval)
+	}
+}
+
+func TestSlideshowBlurredFillRoundTrip(t *testing.T) {
+	cfg := fullTestConfig()
+	cfg.Slideshow.BlurredFill = true
+
+	dto := toDTO(cfg)
+	if !dto.Slideshow.BlurredFill {
+		t.Fatal("toDTO: blurred_fill = false, want true")
+	}
+
+	dto.Slideshow.BlurredFill = false
+	out, err := applyDTO(dto, cfg)
+	if err != nil {
+		t.Fatalf("applyDTO: %v", err)
+	}
+	if out.Slideshow.BlurredFill {
+		t.Errorf("applyDTO: blurred_fill = true, want false")
 	}
 }
 

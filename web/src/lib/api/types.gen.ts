@@ -248,6 +248,7 @@ export type KioskLabelsDto = {
 };
 
 export type KioskPayload = {
+    blurred_fill: boolean;
     hide_clock_date: boolean;
     labels: KioskLabels;
     locale: string;
@@ -435,6 +436,10 @@ export type SetScreenRequest = {
 };
 
 export type SlideshowDto = {
+    /**
+     * Show each photo at its full aspect ratio with a blurred, scaled copy of itself filling the gap instead of cropping
+     */
+    blurred_fill: boolean;
     images_dir: string;
     /**
      * Image advance interval, e.g. "2m"

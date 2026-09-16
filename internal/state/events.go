@@ -68,6 +68,9 @@ type KioskPayload struct {
 	Sensors       []string    `json:"sensors"`
 	Weather       bool        `json:"weather"`
 	Labels        KioskLabels `json:"labels"`
+	// BlurredFill: show each photo at its full aspect ratio with a blurred,
+	// scaled copy of itself filling the letterbox gap instead of cropping.
+	BlurredFill bool `json:"blurred_fill"`
 }
 
 // KioskLabels mirrors config.KioskLabelsConfig; empty strings hide the caption.

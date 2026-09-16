@@ -10,12 +10,14 @@
 		image,
 		aspect = null,
 		interval,
-		shuffle
+		shuffle,
+		blurredFill = false
 	}: {
 		image: ImagePayload | null;
 		aspect?: number | null;
 		interval: string;
 		shuffle: boolean;
+		blurredFill?: boolean;
 	} = $props();
 
 	const cadence = $derived(formatDuration(interval, 'Manual'));
@@ -35,7 +37,7 @@
 		>
 			{#key names.join('|')}
 				<div class="absolute inset-0" transition:fade={{ duration: 1000, easing: sineInOut }}>
-					<Slide images={names} vertical={boxAspect < 1} testId="now-playing-image" />
+					<Slide images={names} vertical={boxAspect < 1} {blurredFill} testId="now-playing-image" />
 				</div>
 			{/key}
 		</div>
