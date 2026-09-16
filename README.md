@@ -15,9 +15,9 @@ private, and plugged into Home Assistant.
 
 <br>
 
-[![CI](https://github.com/MateEke/picture-frame/actions/workflows/ci.yml/badge.svg)](https://github.com/MateEke/picture-frame/actions/workflows/ci.yml)
-[![Release](https://img.shields.io/github/v/release/MateEke/picture-frame?refresh=1)](https://github.com/MateEke/picture-frame/releases/latest)
-[![License](https://img.shields.io/github/license/MateEke/picture-frame)](LICENSE)
+[![CI](https://github.com/webbms72/picture-frame/actions/workflows/ci.yml/badge.svg)](https://github.com/webbms72/picture-frame/actions/workflows/ci.yml)
+[![Release](https://img.shields.io/github/v/release/webbms72/picture-frame?refresh=1)](https://github.com/webbms72/picture-frame/releases/latest)
+[![License](https://img.shields.io/github/license/webbms72/picture-frame)](LICENSE)
 
 </div>
 
@@ -61,7 +61,7 @@ a guided tour of the admin interface, and every configuration option. For the en
 On a fresh Raspberry Pi OS Trixie Lite, reachable over SSH:
 
 ```sh
-curl -fsSL https://github.com/MateEke/picture-frame/releases/latest/download/install.sh | sudo bash
+curl -fsSL https://github.com/webbms72/picture-frame/releases/latest/download/install.sh | sudo bash
 ```
 
 See the [Install guide](https://pictureframe.ekemate.hu/getting-started/install/) for the

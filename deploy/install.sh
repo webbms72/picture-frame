@@ -2,9 +2,9 @@
 # Fetch, verify, and provision the picture-frame on a Raspberry Pi. See --help.
 set -euo pipefail
 
-REPO="MateEke/picture-frame"
+REPO="webbms72/picture-frame"
 # Trust anchor; must match deploy/minisign.pub and the updater's embedded key.
-MINISIGN_PUBKEY="RWSn8v6e9fllWNQOZr6w2z8ic5NXGHtKMWxjxrjuu3SWj8BpoWxQLtHl"
+MINISIGN_PUBKEY="RWQ0JwHW6k5IymQEf/3wKk9150a2x5LnL99BiYH9tJih2f8ffdvIjL0T"
 # Records which release's payload sits in INSTALL_DIR (binary + deploy/ templates).
 PAYLOAD_MARKER=".release"
 
