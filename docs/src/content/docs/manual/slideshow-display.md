@@ -58,9 +58,10 @@ the blur still fills the panel edge to edge, but the crisp photo sits in a small
 it. This is for frames whose visible opening doesn't match the panel: a mat or bezel that's
 smaller than the panel, cut to a different aspect ratio, or off-center.
 
-Drag **Zoom** for a quick, even shrink on all four sides, then fine-tune **Top**, **Right**,
-**Bottom**, and **Left** independently to match your frame's actual opening. Each side goes from
-0% (touching the panel edge) to 45%.
+**Top**, **Right**, **Bottom**, and **Left** each go from 0% (touching the panel edge) to 45%,
+independently — set them to match your frame's actual opening, even if it's off-center. Turn on
+**Link opposite sides** to keep Top/Bottom and Left/Right moving together while you drag, for a
+quick, even, centered shrink; it's an editing aid only, not a saved setting.
 
 ## Turning the screen off when idle
 
