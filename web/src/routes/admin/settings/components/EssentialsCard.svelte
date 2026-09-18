@@ -37,21 +37,17 @@
 	// opposite pair carries the other side along, keeping the window centered.
 	let linkOpposite = $state(false);
 
-	function setTop(v: number): void {
-		slideshow.window.top = v;
-		if (linkOpposite) slideshow.window.bottom = v;
-	}
-	function setBottom(v: number): void {
-		slideshow.window.bottom = v;
-		if (linkOpposite) slideshow.window.top = v;
-	}
-	function setLeft(v: number): void {
-		slideshow.window.left = v;
-		if (linkOpposite) slideshow.window.right = v;
-	}
-	function setRight(v: number): void {
-		slideshow.window.right = v;
-		if (linkOpposite) slideshow.window.left = v;
+	type Side = 'top' | 'right' | 'bottom' | 'left';
+	const OPPOSITE_SIDE: Record<Side, Side> = {
+		top: 'bottom',
+		bottom: 'top',
+		left: 'right',
+		right: 'left'
+	};
+
+	function setSide(side: Side, v: number): void {
+		slideshow.window[side] = v;
+		if (linkOpposite) slideshow.window[OPPOSITE_SIDE[side]] = v;
 	}
 </script>
 
@@ -114,25 +110,25 @@
 				<PercentSlider
 					label="Top"
 					value={slideshow.window.top}
-					onchange={setTop}
+					onchange={(v) => setSide('top', v)}
 					testId="window-top-slider"
 				/>
 				<PercentSlider
 					label="Right"
 					value={slideshow.window.right}
-					onchange={setRight}
+					onchange={(v) => setSide('right', v)}
 					testId="window-right-slider"
 				/>
 				<PercentSlider
 					label="Bottom"
 					value={slideshow.window.bottom}
-					onchange={setBottom}
+					onchange={(v) => setSide('bottom', v)}
 					testId="window-bottom-slider"
 				/>
 				<PercentSlider
 					label="Left"
 					value={slideshow.window.left}
-					onchange={setLeft}
+					onchange={(v) => setSide('left', v)}
 					testId="window-left-slider"
 				/>
 			</div>
