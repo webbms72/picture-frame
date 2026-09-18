@@ -57,6 +57,19 @@ Captions under the readings on the frame. An empty value hides that caption. **(
 | `blurred_fill`   | boolean  | `false`  | Show each photo at its full aspect ratio over a blurred, zoomed copy of itself instead of cropping. **(live)** |
 | `images_dir`     | string   | `images` | Root folder for image storage.                                                                          |
 
+### `[slideshow.window]`
+
+Insets the sharp foreground photo from its pane's edges, as a percent of that edge's dimension
+(`blurred_fill` only — the blur still fills the pane edge to edge). All zero (the default) is a
+full-bleed pane, identical to `blurred_fill` alone.
+
+| Key      | Type  | Default | Description                              |
+| -------- | ----- | ------- | ----------------------------------------- |
+| `top`    | float | `0`     | Inset from the top edge, 0-45. **(live)** |
+| `right`  | float | `0`     | Inset from the right edge, 0-45. **(live)** |
+| `bottom` | float | `0`     | Inset from the bottom edge, 0-45. **(live)** |
+| `left`   | float | `0`     | Inset from the left edge, 0-45. **(live)** |
+
 ## `[library]`
 
 See [Photos](/manual/photos/).

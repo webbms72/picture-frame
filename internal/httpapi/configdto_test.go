@@ -37,6 +37,10 @@ func TestKioskEventPayload(t *testing.T) {
 	if !got.BlurredFill {
 		t.Error("blurred_fill: want true (set in fullTestConfig)")
 	}
+	wantWindow := state.Window{Top: 1, Right: 2, Bottom: 3, Left: 4}
+	if got.Window != wantWindow {
+		t.Errorf("window: got %+v, want %+v", got.Window, wantWindow)
+	}
 
 	if KioskEventPayload(cfg, false).Weather {
 		t.Error("weather: want false when not weatherActive")
@@ -61,6 +65,7 @@ func fullTestConfig() config.Config {
 			Interval:    config.Duration{Duration: 2 * time.Minute},
 			Randomize:   true,
 			BlurredFill: true,
+			Window:      config.WindowConfig{Top: 1, Right: 2, Bottom: 3, Left: 4},
 			ImagesDir:   "images",
 		},
 		Library: config.LibraryConfig{
@@ -207,6 +212,27 @@ func TestSlideshowBlurredFillRoundTrip(t *testing.T) {
 	}
 	if out.Slideshow.BlurredFill {
 		t.Errorf("applyDTO: blurred_fill = true, want false")
+	}
+}
+
+func TestSlideshowWindowRoundTrip(t *testing.T) {
+	cfg := fullTestConfig()
+	cfg.Slideshow.Window = config.WindowConfig{Top: 5, Right: 10, Bottom: 15, Left: 20}
+
+	dto := toDTO(cfg)
+	want := WindowDTO{Top: 5, Right: 10, Bottom: 15, Left: 20}
+	if dto.Slideshow.Window != want {
+		t.Fatalf("toDTO: window = %+v, want %+v", dto.Slideshow.Window, want)
+	}
+
+	dto.Slideshow.Window = WindowDTO{Top: 1, Right: 2, Bottom: 3, Left: 4}
+	out, err := applyDTO(dto, cfg)
+	if err != nil {
+		t.Fatalf("applyDTO: %v", err)
+	}
+	wantOut := config.WindowConfig{Top: 1, Right: 2, Bottom: 3, Left: 4}
+	if out.Slideshow.Window != wantOut {
+		t.Errorf("applyDTO: window = %+v, want %+v", out.Slideshow.Window, wantOut)
 	}
 }
 

@@ -8,6 +8,7 @@
 		testId,
 		vertical,
 		blurredFill,
+		window: win,
 		class: className,
 		...rest
 	}: {
@@ -19,7 +20,13 @@
 		// When true, each pane shows the full photo uncropped (object-contain) over
 		// a blurred, zoomed copy of itself instead of cropping to fill (object-cover).
 		blurredFill?: boolean;
+		// Percent insets (0-45) shrinking the sharp foreground photo within its pane;
+		// blurredFill only, ignored otherwise. Unset/all-zero fills the pane edge to edge.
+		window?: { top: number; right: number; bottom: number; left: number };
 	} & HTMLAttributes<HTMLDivElement> = $props();
+
+	const ZERO_WINDOW = { top: 0, right: 0, bottom: 0, left: 0 };
+	const w = $derived(win ?? ZERO_WINDOW);
 
 	// The kiosk follows its viewport in pure CSS; the dashboard preview, whose
 	// orientation is the frame's not the admin window's, sets vertical explicitly.
@@ -74,7 +81,8 @@
 					src="/img/{name}"
 					alt=""
 					decoding="async"
-					class="relative h-full w-full object-contain"
+					class="absolute object-contain"
+					style="top: {w.top}%; right: {w.right}%; bottom: {w.bottom}%; left: {w.left}%"
 					data-testid={i === 0 ? testId : undefined}
 				/>
 			</div>

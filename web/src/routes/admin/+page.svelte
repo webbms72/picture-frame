@@ -144,6 +144,7 @@
 			interval={data.config?.slideshow.interval ?? ''}
 			shuffle={data.config?.slideshow.randomize ?? false}
 			blurredFill={data.config?.slideshow.blurred_fill ?? false}
+			window={data.config?.slideshow.window}
 		/>
 
 		<div class="flex flex-col gap-3 md:h-full">

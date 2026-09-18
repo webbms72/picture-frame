@@ -33,6 +33,7 @@ export function createEmptyConfig(): ConfigResponseBody {
 			randomize: false,
 			split_screen: true,
 			blurred_fill: false,
+			window: { top: 0, right: 0, bottom: 0, left: 0 },
 			images_dir: 'images'
 		},
 		library: {

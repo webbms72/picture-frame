@@ -107,6 +107,19 @@ type SlideshowConfig struct {
 	// BlurredFill shows each photo at its full, uncropped aspect ratio with a
 	// heavily blurred, scaled copy of the same photo filling the letterbox gap.
 	BlurredFill bool `toml:"blurred_fill"`
+	// Window shrinks the sharp foreground photo within its pane (BlurredFill only);
+	// the blurred background still fills the full pane edge to edge.
+	Window WindowConfig `toml:"window"`
+}
+
+// WindowConfig insets the sharp foreground photo from its pane's edges, as a percent
+// of that edge's dimension (0-45 each, enforced by Validate). All zero (the default)
+// is pixel-identical to a full-bleed BlurredFill pane.
+type WindowConfig struct {
+	Top    float64 `toml:"top"`
+	Right  float64 `toml:"right"`
+	Bottom float64 `toml:"bottom"`
+	Left   float64 `toml:"left"`
 }
 
 // Known display backend names.
