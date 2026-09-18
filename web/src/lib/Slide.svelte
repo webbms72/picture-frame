@@ -82,7 +82,7 @@
 					alt=""
 					decoding="async"
 					class="absolute object-contain"
-					style="top: {w.top}%; right: {w.right}%; bottom: {w.bottom}%; left: {w.left}%"
+					style="top: {w.top}%; left: {w.left}%; width: calc(100% - {w.left}% - {w.right}%); height: calc(100% - {w.top}% - {w.bottom}%)"
 					data-testid={i === 0 ? testId : undefined}
 				/>
 			</div>
