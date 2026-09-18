@@ -256,6 +256,7 @@ export type KioskPayload = {
     timezone: string;
     version: string;
     weather: boolean;
+    window: Window;
 };
 
 export type LibraryDto = {
@@ -450,6 +451,10 @@ export type SlideshowDto = {
      * Pair mismatched-orientation photos side-by-side
      */
     split_screen: boolean;
+    /**
+     * Insets the sharp foreground photo from its pane's edges (blurred_fill only); the blur still fills the full pane
+     */
+    window: WindowDto;
 };
 
 export type SystemDevicesBody = {
@@ -652,6 +657,20 @@ export type WiFiState = {
     security: string;
     signal: number;
     ssid: string;
+};
+
+export type Window = {
+    bottom: number;
+    left: number;
+    right: number;
+    top: number;
+};
+
+export type WindowDto = {
+    bottom: number;
+    left: number;
+    right: number;
+    top: number;
 };
 
 export type ApRequestWritable = {

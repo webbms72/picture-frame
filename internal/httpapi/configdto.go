@@ -96,13 +96,35 @@ func labelsToState(c config.KioskLabelsConfig) state.KioskLabels {
 	return state.KioskLabels{Outside: c.Outside, Inside: c.Inside, Humidity: c.Humidity}
 }
 
+// The window conversions live together for the same reason as the label ones above.
+func windowToDTO(c config.WindowConfig) WindowDTO {
+	return WindowDTO{Top: c.Top, Right: c.Right, Bottom: c.Bottom, Left: c.Left}
+}
+
+func windowFromDTO(d WindowDTO) config.WindowConfig {
+	return config.WindowConfig{Top: d.Top, Right: d.Right, Bottom: d.Bottom, Left: d.Left}
+}
+
+func windowToState(c config.WindowConfig) state.Window {
+	return state.Window{Top: c.Top, Right: c.Right, Bottom: c.Bottom, Left: c.Left}
+}
+
 // SlideshowDTO maps config.SlideshowConfig.
 type SlideshowDTO struct {
-	Interval    string `json:"interval" doc:"Image advance interval, e.g. \"2m\""`
-	Randomize   bool   `json:"randomize"`
-	SplitScreen bool   `json:"split_screen" doc:"Pair mismatched-orientation photos side-by-side"`
-	BlurredFill bool   `json:"blurred_fill" doc:"Show each photo at its full aspect ratio with a blurred, scaled copy of itself filling the gap instead of cropping"`
-	ImagesDir   string `json:"images_dir"`
+	Interval    string    `json:"interval" doc:"Image advance interval, e.g. \"2m\""`
+	Randomize   bool      `json:"randomize"`
+	SplitScreen bool      `json:"split_screen" doc:"Pair mismatched-orientation photos side-by-side"`
+	BlurredFill bool      `json:"blurred_fill" doc:"Show each photo at its full aspect ratio with a blurred, scaled copy of itself filling the gap instead of cropping"`
+	Window      WindowDTO `json:"window" doc:"Insets the sharp foreground photo from its pane's edges (blurred_fill only); the blur still fills the full pane"`
+	ImagesDir   string    `json:"images_dir"`
+}
+
+// WindowDTO maps config.WindowConfig: percent insets (0-45) from each pane edge.
+type WindowDTO struct {
+	Top    float64 `json:"top" minimum:"0" maximum:"45"`
+	Right  float64 `json:"right" minimum:"0" maximum:"45"`
+	Bottom float64 `json:"bottom" minimum:"0" maximum:"45"`
+	Left   float64 `json:"left" minimum:"0" maximum:"45"`
 }
 
 // LibraryDTO maps config.LibraryConfig.
@@ -204,6 +226,7 @@ func toDTO(cfg config.Config) ConfigDTO {
 			Randomize:   cfg.Slideshow.Randomize,
 			SplitScreen: cfg.Slideshow.SplitScreen,
 			BlurredFill: cfg.Slideshow.BlurredFill,
+			Window:      windowToDTO(cfg.Slideshow.Window),
 			ImagesDir:   cfg.Slideshow.ImagesDir,
 		},
 		Library: LibraryDTO{
@@ -344,6 +367,7 @@ func applySlideshowDTO(dst *config.SlideshowConfig, dto SlideshowDTO) error {
 	dst.Randomize = dto.Randomize
 	dst.SplitScreen = dto.SplitScreen
 	dst.BlurredFill = dto.BlurredFill
+	dst.Window = windowFromDTO(dto.Window)
 	// The toggle-only DTO omits pair_threshold; coerce an invalid running value so
 	// enabling split-screen can't produce a config that fails Validate (>1 required).
 	if dst.SplitScreen && dst.PairThreshold <= 1 {
@@ -497,6 +521,7 @@ func KioskEventPayload(cfg config.Config, weatherActive bool) state.KioskPayload
 		Weather:       weatherActive,
 		Labels:        labelsToState(cfg.Display.Labels),
 		BlurredFill:   cfg.Slideshow.BlurredFill,
+		Window:        windowToState(cfg.Slideshow.Window),
 	}
 }
 

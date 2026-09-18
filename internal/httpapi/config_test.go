@@ -203,6 +203,35 @@ func TestPutConfigBlurredFillIsLive(t *testing.T) {
 	}
 }
 
+func TestPutConfigWindowIsLive(t *testing.T) {
+	saved := defaultSaved()
+	srv, lc, restartCalls := makeConfigServer(t, saved)
+
+	// Adjusting the display window re-publishes the kiosk SSE event live; never a restart.
+	body := putBody(t, saved, func(dto *map[string]any) {
+		(*dto)["slideshow"].(map[string]any)["window"] = map[string]any{
+			"top": 10.0, "right": 20.0, "bottom": 30.0, "left": 40.0,
+		}
+	})
+	rec := doJSONPut(srv, "/api/config", body)
+	if rec.Code != http.StatusOK {
+		t.Fatalf("status: got %d; body: %s", rec.Code, rec.Body)
+	}
+	if lc.calls.Load() != 1 {
+		t.Errorf("ApplyLive: called %d times, want 1", lc.calls.Load())
+	}
+	if restartCalls.Load() != 0 {
+		t.Error("Restart must not be called on PUT")
+	}
+	var resp map[string]any
+	if err := json.Unmarshal(rec.Body.Bytes(), &resp); err != nil {
+		t.Fatalf("decode: %v", err)
+	}
+	if resp["restart_pending"] != false {
+		t.Errorf("window change: restart_pending must be false, got %v", resp["restart_pending"])
+	}
+}
+
 func TestPutConfigRestartPendingForNonTier1(t *testing.T) {
 	saved := defaultSaved()
 	srv, _, _ := makeConfigServer(t, saved)

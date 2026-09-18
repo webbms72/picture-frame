@@ -8,6 +8,7 @@
 	import TimezoneCombobox from './TimezoneCombobox.svelte';
 	import Field from './Field.svelte';
 	import ToggleRow from './ToggleRow.svelte';
+	import PercentSlider from './PercentSlider.svelte';
 
 	let {
 		slideshow = $bindable(),
@@ -29,6 +30,14 @@
 	const blurredFillChanged = $derived(slideshow.blurred_fill !== savedSlideshow.blurred_fill);
 	// structural compare so a new label field is covered without touching this
 	const labelsChanged = $derived(!eq(display.labels, savedDisplay.labels));
+	// structural compare, same as labelsChanged, for the four window sides as a group
+	const windowChanged = $derived(!eq(slideshow.window, savedSlideshow.window));
+
+	// Coarse convenience action: sets all four sides at once, then the sliders below
+	// let the user fine-tune each side independently from that starting point.
+	function setZoom(v: number): void {
+		slideshow.window = { top: v, right: v, bottom: v, left: v };
+	}
 </script>
 
 <div class="card bg-surface-100-900 space-y-5 p-6">
@@ -69,6 +78,56 @@
 		onrevert={() => (slideshow.blurred_fill = savedSlideshow.blurred_fill)}
 		testId="blurred-fill-switch"
 	/>
+
+	{#if slideshow.blurred_fill}
+		<Field
+			label="Display window"
+			help="Shrinks the sharp photo within the screen (the blur still fills edge to edge) — use this if your frame's visible opening is smaller than the panel, or a different aspect ratio."
+			changed={windowChanged}
+			onrevert={() => (slideshow.window = { ...savedSlideshow.window })}
+			class="pl-4"
+		>
+			<div class="space-y-3">
+				<PercentSlider
+					label="Zoom"
+					help="Sets all four sides at once — fine-tune below."
+					value={Math.round(
+						(slideshow.window.top +
+							slideshow.window.right +
+							slideshow.window.bottom +
+							slideshow.window.left) /
+							4
+					)}
+					onchange={setZoom}
+					testId="window-zoom-slider"
+				/>
+				<PercentSlider
+					label="Top"
+					value={slideshow.window.top}
+					onchange={(v) => (slideshow.window.top = v)}
+					testId="window-top-slider"
+				/>
+				<PercentSlider
+					label="Right"
+					value={slideshow.window.right}
+					onchange={(v) => (slideshow.window.right = v)}
+					testId="window-right-slider"
+				/>
+				<PercentSlider
+					label="Bottom"
+					value={slideshow.window.bottom}
+					onchange={(v) => (slideshow.window.bottom = v)}
+					testId="window-bottom-slider"
+				/>
+				<PercentSlider
+					label="Left"
+					value={slideshow.window.left}
+					onchange={(v) => (slideshow.window.left = v)}
+					testId="window-left-slider"
+				/>
+			</div>
+		</Field>
+	{/if}
 
 	<DurationSlider
 		label="Turn screen off when idle"

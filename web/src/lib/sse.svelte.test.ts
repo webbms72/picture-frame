@@ -365,7 +365,8 @@ describe('SSESubscriber', () => {
 				timezone: '',
 				sensors: ['inside:temperature'],
 				weather: true,
-				blurred_fill: false
+				blurred_fill: false,
+				window: { top: 0, right: 0, bottom: 0, left: 0 }
 			};
 			emitEvent({ event: 'kiosk', data: kiosk });
 			await tick();

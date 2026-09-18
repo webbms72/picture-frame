@@ -30,6 +30,7 @@
 	const topNames = $derived(splitKey(fader.topSrc));
 
 	const blurredFill = $derived(sse.kiosk?.blurred_fill ?? false);
+	const win = $derived(sse.kiosk?.window);
 
 	onDestroy(() => fader.stop());
 </script>
@@ -40,6 +41,7 @@
 	data-testid="kiosk-slide-bottom"
 	images={bottomNames}
 	{blurredFill}
+	window={win}
 	testId="kiosk-img-bottom"
 	onAllLoad={() => fader.onBottomLoad()}
 	onError={() => fader.onBottomError()}
@@ -56,6 +58,7 @@
 	}}
 	images={topNames}
 	{blurredFill}
+	window={win}
 	onAllLoad={() => fader.onTopLoad()}
 	onError={() => fader.onTopError()}
 />

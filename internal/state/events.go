@@ -71,6 +71,8 @@ type KioskPayload struct {
 	// BlurredFill: show each photo at its full aspect ratio with a blurred,
 	// scaled copy of itself filling the letterbox gap instead of cropping.
 	BlurredFill bool `json:"blurred_fill"`
+	// Window insets the sharp foreground photo within its pane (BlurredFill only).
+	Window Window `json:"window"`
 }
 
 // KioskLabels mirrors config.KioskLabelsConfig; empty strings hide the caption.
@@ -78,6 +80,14 @@ type KioskLabels struct {
 	Outside  string `json:"outside"`
 	Inside   string `json:"inside"`
 	Humidity string `json:"humidity"`
+}
+
+// Window mirrors config.WindowConfig: percent insets (0-45) from each pane edge.
+type Window struct {
+	Top    float64 `json:"top"`
+	Right  float64 `json:"right"`
+	Bottom float64 `json:"bottom"`
+	Left   float64 `json:"left"`
 }
 
 func (KioskPayload) busPayload() {}

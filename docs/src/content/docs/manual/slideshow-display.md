@@ -51,6 +51,17 @@ The toggle is off by default (`slideshow.blurred_fill`). It works alongside spli
 rather than replacing it — a paired photo is shown uncropped already, so blurred fill mainly
 affects lone photos whose shape doesn't match the screen.
 
+### Display window
+
+With blurred fill on, **Display window** shrinks the sharp photo further within the screen —
+the blur still fills the panel edge to edge, but the crisp photo sits in a smaller box inside
+it. This is for frames whose visible opening doesn't match the panel: a mat or bezel that's
+smaller than the panel, cut to a different aspect ratio, or off-center.
+
+Drag **Zoom** for a quick, even shrink on all four sides, then fine-tune **Top**, **Right**,
+**Bottom**, and **Left** independently to match your frame's actual opening. Each side goes from
+0% (touching the panel edge) to 45%.
+
 ## Turning the screen off when idle
 
 **Turn screen off when idle** blanks the panel after a stretch with no motion, and motion

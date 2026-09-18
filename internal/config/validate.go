@@ -66,6 +66,23 @@ func (s SlideshowConfig) validate() error {
 	if s.SplitScreen && s.PairThreshold <= 1.0 {
 		return fmt.Errorf("pair_threshold must be > 1 when split_screen is enabled, got %v", s.PairThreshold)
 	}
+	return s.Window.validate()
+}
+
+// validate bounds each inset to 0-45%, so opposite sides can never sum to 100+ and
+// collapse or invert the window.
+func (w WindowConfig) validate() error {
+	sides := []struct {
+		name string
+		v    float64
+	}{
+		{"top", w.Top}, {"right", w.Right}, {"bottom", w.Bottom}, {"left", w.Left},
+	}
+	for _, s := range sides {
+		if s.v < 0 || s.v > 45 {
+			return fmt.Errorf("window.%s must be 0-45, got %v", s.name, s.v)
+		}
+	}
 	return nil
 }
 

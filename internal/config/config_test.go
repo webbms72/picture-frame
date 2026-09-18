@@ -79,6 +79,9 @@ func TestLoadDefaults(t *testing.T) {
 	if cfg.Slideshow.BlurredFill {
 		t.Error("slideshow blurred_fill should default to false")
 	}
+	if cfg.Slideshow.Window != (config.WindowConfig{}) {
+		t.Errorf("slideshow window: got %+v, want all-zero", cfg.Slideshow.Window)
+	}
 	if cfg.Library.Immich.SyncInterval.Duration != 15*time.Minute {
 		t.Errorf("immich sync_interval: got %v, want 15m", cfg.Library.Immich.SyncInterval)
 	}
@@ -124,6 +127,25 @@ blurred_fill = true
 	}
 	if !cfg.Slideshow.BlurredFill {
 		t.Error("slideshow.blurred_fill: got false, want true")
+	}
+}
+
+func TestLoadSlideshowWindow(t *testing.T) {
+	dir := t.TempDir()
+	userPath := write(t, dir, "config.toml", `
+[slideshow.window]
+top = 10
+right = 20
+bottom = 30
+left = 40
+`)
+	cfg, err := config.Load(userPath, filepath.Join(dir, "overrides.toml"))
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	want := config.WindowConfig{Top: 10, Right: 20, Bottom: 30, Left: 40}
+	if cfg.Slideshow.Window != want {
+		t.Errorf("slideshow.window: got %+v, want %+v", cfg.Slideshow.Window, want)
 	}
 }
 
@@ -312,6 +334,33 @@ func TestValidateSlideshow(t *testing.T) {
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
 			cfg := &config.Config{Slideshow: config.SlideshowConfig{SplitScreen: tc.split, PairThreshold: tc.thr}}
+			err := cfg.Validate()
+			if tc.wantErr && err == nil {
+				t.Fatal("expected error, got nil")
+			}
+			if !tc.wantErr && err != nil {
+				t.Fatalf("unexpected error: %v", err)
+			}
+		})
+	}
+}
+
+func TestValidateWindow(t *testing.T) {
+	cases := []struct {
+		name    string
+		window  config.WindowConfig
+		wantErr bool
+	}{
+		{"all zero", config.WindowConfig{}, false},
+		{"valid values", config.WindowConfig{Top: 10, Right: 20, Bottom: 30, Left: 45}, false},
+		{"top too high", config.WindowConfig{Top: 46}, true},
+		{"right negative", config.WindowConfig{Right: -1}, true},
+		{"bottom too high", config.WindowConfig{Bottom: 100}, true},
+		{"left too high", config.WindowConfig{Left: 45.1}, true},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			cfg := &config.Config{Slideshow: config.SlideshowConfig{Window: tc.window}}
 			err := cfg.Validate()
 			if tc.wantErr && err == nil {
 				t.Fatal("expected error, got nil")

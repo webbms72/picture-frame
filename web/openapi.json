@@ -656,6 +656,9 @@
           },
           "weather": {
             "type": "boolean"
+          },
+          "window": {
+            "$ref": "#/components/schemas/Window"
           }
         },
         "required": [
@@ -666,7 +669,8 @@
           "sensors",
           "weather",
           "labels",
-          "blurred_fill"
+          "blurred_fill",
+          "window"
         ],
         "type": "object"
       },
@@ -1136,6 +1140,10 @@
           "split_screen": {
             "description": "Pair mismatched-orientation photos side-by-side",
             "type": "boolean"
+          },
+          "window": {
+            "$ref": "#/components/schemas/WindowDTO",
+            "description": "Insets the sharp foreground photo from its pane's edges (blurred_fill only); the blur still fills the full pane"
           }
         },
         "required": [
@@ -1143,6 +1151,7 @@
           "randomize",
           "split_screen",
           "blurred_fill",
+          "window",
           "images_dir"
         ],
         "type": "object"
@@ -1559,6 +1568,70 @@
           "ap_ssid",
           "ap_has_password",
           "hostname"
+        ],
+        "type": "object"
+      },
+      "Window": {
+        "additionalProperties": false,
+        "properties": {
+          "bottom": {
+            "format": "double",
+            "type": "number"
+          },
+          "left": {
+            "format": "double",
+            "type": "number"
+          },
+          "right": {
+            "format": "double",
+            "type": "number"
+          },
+          "top": {
+            "format": "double",
+            "type": "number"
+          }
+        },
+        "required": [
+          "top",
+          "right",
+          "bottom",
+          "left"
+        ],
+        "type": "object"
+      },
+      "WindowDTO": {
+        "additionalProperties": false,
+        "properties": {
+          "bottom": {
+            "format": "double",
+            "maximum": 45,
+            "minimum": 0,
+            "type": "number"
+          },
+          "left": {
+            "format": "double",
+            "maximum": 45,
+            "minimum": 0,
+            "type": "number"
+          },
+          "right": {
+            "format": "double",
+            "maximum": 45,
+            "minimum": 0,
+            "type": "number"
+          },
+          "top": {
+            "format": "double",
+            "maximum": 45,
+            "minimum": 0,
+            "type": "number"
+          }
+        },
+        "required": [
+          "top",
+          "right",
+          "bottom",
+          "left"
         ],
         "type": "object"
       }
