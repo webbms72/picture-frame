@@ -33,10 +33,25 @@
 	// structural compare, same as labelsChanged, for the four window sides as a group
 	const windowChanged = $derived(!eq(slideshow.window, savedSlideshow.window));
 
-	// Coarse convenience action: sets all four sides at once, then the sliders below
-	// let the user fine-tune each side independently from that starting point.
-	function setZoom(v: number): void {
-		slideshow.window = { top: v, right: v, bottom: v, left: v };
+	// Editing aid only, not a saved setting: when on, dragging one side of an
+	// opposite pair carries the other side along, keeping the window centered.
+	let linkOpposite = $state(false);
+
+	function setTop(v: number): void {
+		slideshow.window.top = v;
+		if (linkOpposite) slideshow.window.bottom = v;
+	}
+	function setBottom(v: number): void {
+		slideshow.window.bottom = v;
+		if (linkOpposite) slideshow.window.top = v;
+	}
+	function setLeft(v: number): void {
+		slideshow.window.left = v;
+		if (linkOpposite) slideshow.window.right = v;
+	}
+	function setRight(v: number): void {
+		slideshow.window.right = v;
+		if (linkOpposite) slideshow.window.left = v;
 	}
 </script>
 
@@ -88,41 +103,36 @@
 			class="pl-4"
 		>
 			<div class="space-y-3">
-				<PercentSlider
-					label="Zoom"
-					help="Sets all four sides at once — fine-tune below."
-					value={Math.round(
-						(slideshow.window.top +
-							slideshow.window.right +
-							slideshow.window.bottom +
-							slideshow.window.left) /
-							4
-					)}
-					onchange={setZoom}
-					testId="window-zoom-slider"
+				<ToggleRow
+					label="Link opposite sides"
+					checked={linkOpposite}
+					changed={false}
+					onchange={(v) => (linkOpposite = v)}
+					onrevert={() => {}}
+					testId="window-link-switch"
 				/>
 				<PercentSlider
 					label="Top"
 					value={slideshow.window.top}
-					onchange={(v) => (slideshow.window.top = v)}
+					onchange={setTop}
 					testId="window-top-slider"
 				/>
 				<PercentSlider
 					label="Right"
 					value={slideshow.window.right}
-					onchange={(v) => (slideshow.window.right = v)}
+					onchange={setRight}
 					testId="window-right-slider"
 				/>
 				<PercentSlider
 					label="Bottom"
 					value={slideshow.window.bottom}
-					onchange={(v) => (slideshow.window.bottom = v)}
+					onchange={setBottom}
 					testId="window-bottom-slider"
 				/>
 				<PercentSlider
 					label="Left"
 					value={slideshow.window.left}
-					onchange={(v) => (slideshow.window.left = v)}
+					onchange={setLeft}
 					testId="window-left-slider"
 				/>
 			</div>
