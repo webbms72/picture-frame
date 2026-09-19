@@ -85,7 +85,12 @@ describe('Slide', () => {
 		it('renders the plain window-inset box when /focus reports no faces', async () => {
 			vi.stubGlobal(
 				'fetch',
-				vi.fn().mockResolvedValue({ ok: true, json: async () => ({ detected: true, faces: [] }) })
+				vi.fn().mockResolvedValue(
+					new Response(JSON.stringify({ detected: true, faces: [] }), {
+						status: 200,
+						headers: { 'Content-Type': 'application/json' }
+					})
+				)
 			);
 			const { container } = await render(Slide, {
 				images: ['a.jpg'],
@@ -105,10 +110,15 @@ describe('Slide', () => {
 		it('renders a distinct crop box once /focus returns a face and the image has loaded', async () => {
 			vi.stubGlobal(
 				'fetch',
-				vi.fn().mockResolvedValue({
-					ok: true,
-					json: async () => ({ detected: true, faces: [{ x0: 0.8, y0: 0.4, x1: 0.95, y1: 0.6 }] })
-				})
+				vi.fn().mockResolvedValue(
+					new Response(
+						JSON.stringify({
+							detected: true,
+							faces: [{ x0: 0.8, y0: 0.4, x1: 0.95, y1: 0.6 }]
+						}),
+						{ status: 200, headers: { 'Content-Type': 'application/json' } }
+					)
+				)
 			);
 			const { container } = await render(Slide, {
 				images: ['a.jpg'],

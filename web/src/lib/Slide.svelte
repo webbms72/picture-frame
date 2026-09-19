@@ -1,6 +1,7 @@
 <script lang="ts">
 	import type { HTMLAttributes } from 'svelte/elements';
 	import { computeAutoCrop, type FaceBox } from './cropMath';
+	import { apiImageFocus } from '$lib/api/sdk.gen';
 
 	let {
 		images,
@@ -57,27 +58,31 @@
 	// Cached /focus results, keyed by image name; persists across slide changes so a name the
 	// worker has already finished detecting on never refetches. A photo not yet processed (or a
 	// failed fetch) is recorded as [] so autoCrop falls back to the plain window-inset box rather
-	// than blocking on the network or showing a loading state, but is NOT marked requested — the
-	// next time this name comes around in the rotation, it's fetched again, picking up the
-	// background detector's result once it catches up.
+	// than blocking on the network or showing a loading state, but is retried the next time this
+	// name comes around in the rotation, picking up the background detector's result once it
+	// catches up (see `done` below).
 	let faceCache: Record<string, FaceBox[]> = $state({});
-	// Non-reactive: tracks which names are done (detected=true, no need to ever refetch) so the
-	// effect below doesn't read faceCache (a $state object it also writes to), which would make
-	// each write re-trigger the same effect for every image already requested that pass.
+	// Non-reactive: tracks which names are in flight or done, so the effect below doesn't read
+	// faceCache (a $state object it also writes to, which would re-trigger the same effect for
+	// every image already requested that pass) and doesn't issue a second concurrent fetch for a
+	// name whose first fetch hasn't resolved yet. Set true synchronously before each fetch, then
+	// cleared back to false if the result says the image isn't detected yet, so it's retried the
+	// next time this name comes around in the rotation.
 	const done: Record<string, boolean> = {};
 
 	$effect(() => {
 		if (!blurredFill || !autoCrop) return;
 		for (const name of images) {
 			if (done[name]) continue;
-			fetch(`/img/${encodeURIComponent(name)}/focus`)
-				.then((r) => (r.ok ? r.json() : { detected: false, faces: [] }))
-				.then((data: { detected?: boolean; faces?: FaceBox[] }) => {
-					faceCache[name] = data.faces ?? [];
-					if (data.detected) done[name] = true;
+			done[name] = true; // in-flight marker; cleared back to false below if not yet detected
+			apiImageFocus({ path: { name } })
+				.then(({ data }) => {
+					faceCache[name] = data?.faces ?? [];
+					if (!data?.detected) done[name] = false;
 				})
 				.catch(() => {
 					faceCache[name] = [];
+					done[name] = false;
 				});
 		}
 	});
