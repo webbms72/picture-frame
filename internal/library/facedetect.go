@@ -3,6 +3,8 @@ package library
 import (
 	"context"
 	"image"
+	// Registered for their image.Decode side effect: detectOne decodes whatever format the
+	// library holds (jpeg, png, or an animated gif's first frame) without a format switch.
 	_ "image/gif"
 	_ "image/jpeg"
 	_ "image/png"
@@ -10,6 +12,7 @@ import (
 	"os"
 	"time"
 
+	// Registered for its go:embed side effect, used by the cascadeFile directive below.
 	_ "embed"
 
 	pigo "github.com/esimov/pigo/core"
