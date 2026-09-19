@@ -110,6 +110,13 @@ type SlideshowConfig struct {
 	// Window shrinks the sharp foreground photo within its pane (BlurredFill only);
 	// the blurred background still fills the full pane edge to edge.
 	Window WindowConfig `toml:"window"`
+	// AutoCrop shifts the sharp foreground photo's crop window (within Window's bounds)
+	// toward whatever keeps detected faces in frame, reducing blur margin. Falls back to
+	// today's centered behavior when no faces are detected or none is needed.
+	AutoCrop bool `toml:"auto_crop"`
+	// MaxCropPercent caps how far AutoCrop may zoom in past the no-crop (contain) fit, as a
+	// percent of that fit's scale (0-100, enforced by Validate).
+	MaxCropPercent float64 `toml:"max_crop_percent"`
 }
 
 // WindowConfig insets the sharp foreground photo from its pane's edges, as a percent
@@ -233,11 +240,12 @@ func defaults() Config {
 			Locale:     "en-US",
 		},
 		Slideshow: SlideshowConfig{
-			Interval:      Duration{120 * time.Second},
-			ImagesDir:     "images",
-			Randomize:     false,
-			SplitScreen:   true,
-			PairThreshold: DefaultPairThreshold,
+			Interval:       Duration{120 * time.Second},
+			ImagesDir:      "images",
+			Randomize:      false,
+			SplitScreen:    true,
+			PairThreshold:  DefaultPairThreshold,
+			MaxCropPercent: 20,
 		},
 		Library: LibraryConfig{
 			Backend: BackendFS,

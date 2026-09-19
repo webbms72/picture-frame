@@ -102,6 +102,28 @@ func newImageServerWithAspect(t *testing.T) (*imageHarness, *library.AspectStore
 	return &imageHarness{handler: h, lib: lib, bus: bus, root: root, slideshow: ss}, aspect
 }
 
+func newImageServerWithFaces(t *testing.T) (*imageHarness, *library.FaceStore) {
+	t.Helper()
+	dir := t.TempDir()
+	root, err := os.OpenRoot(dir)
+	if err != nil {
+		t.Fatalf("OpenRoot: %v", err)
+	}
+	t.Cleanup(func() { _ = root.Close() })
+	lib := library.New(nil, false)
+	bus := state.NewBus()
+	ss := &fakeSlideshow{}
+	faces, err := library.LoadFaceStore(testutil.NopLogger(), root)
+	if err != nil {
+		t.Fatalf("LoadFaceStore: %v", err)
+	}
+	h := httpapi.NewServer(httpapi.Config{
+		Log: testutil.NopLogger(), Bus: bus, Library: lib, ImagesRoot: root,
+		Slideshow: ss, KioskBeater: &fakeBeater{}, Faces: faces,
+	})
+	return &imageHarness{handler: h, lib: lib, bus: bus, root: root, slideshow: ss}, faces
+}
+
 func uploadedName(t *testing.T, rec *httptest.ResponseRecorder) string {
 	t.Helper()
 	var item struct{ Name string }
@@ -883,6 +905,90 @@ func TestSlideshowPrevEndpoint(t *testing.T) {
 	}
 	if h.slideshow.prevs.Load() != 1 {
 		t.Errorf("prev calls = %d, want 1", h.slideshow.prevs.Load())
+	}
+}
+
+func TestImageFocusNoFaceStoreReturnsUndetected(t *testing.T) {
+	h := newImageServer(t)
+	rec := httptest.NewRecorder()
+	h.handler.ServeHTTP(rec, httptest.NewRequest(http.MethodGet, "/img/x.jpg/focus", nil))
+	if rec.Code != http.StatusOK {
+		t.Fatalf("status = %d, want 200, body %s", rec.Code, rec.Body)
+	}
+	var body struct {
+		Detected bool
+		Faces    []httpapi.FaceBoxDTO
+	}
+	if err := json.NewDecoder(rec.Body).Decode(&body); err != nil {
+		t.Fatalf("decode: %v", err)
+	}
+	if body.Detected {
+		t.Error("detected should be false with no FaceStore wired")
+	}
+	if len(body.Faces) != 0 {
+		t.Errorf("faces = %v, want empty", body.Faces)
+	}
+}
+
+func TestImageFocusUnprocessedReturnsUndetected(t *testing.T) {
+	h, _ := newImageServerWithFaces(t)
+	rec := httptest.NewRecorder()
+	h.handler.ServeHTTP(rec, httptest.NewRequest(http.MethodGet, "/img/x.jpg/focus", nil))
+	if rec.Code != http.StatusOK {
+		t.Fatalf("status = %d, want 200, body %s", rec.Code, rec.Body)
+	}
+	var body struct {
+		Detected bool
+		Faces    []httpapi.FaceBoxDTO
+	}
+	if err := json.NewDecoder(rec.Body).Decode(&body); err != nil {
+		t.Fatalf("decode: %v", err)
+	}
+	if body.Detected {
+		t.Error("detected should be false before detection has run")
+	}
+}
+
+func TestImageFocusReturnsCachedFaces(t *testing.T) {
+	h, faces := newImageServerWithFaces(t)
+	faces.Set("x.jpg", []library.FaceBox{{X0: 0.1, Y0: 0.2, X1: 0.3, Y1: 0.4}})
+
+	rec := httptest.NewRecorder()
+	h.handler.ServeHTTP(rec, httptest.NewRequest(http.MethodGet, "/img/x.jpg/focus", nil))
+	if rec.Code != http.StatusOK {
+		t.Fatalf("status = %d, want 200, body %s", rec.Code, rec.Body)
+	}
+	var body struct {
+		Detected bool
+		Faces    []httpapi.FaceBoxDTO
+	}
+	if err := json.NewDecoder(rec.Body).Decode(&body); err != nil {
+		t.Fatalf("decode: %v", err)
+	}
+	if !body.Detected {
+		t.Error("detected should be true once Set has run")
+	}
+	want := httpapi.FaceBoxDTO{X0: 0.1, Y0: 0.2, X1: 0.3, Y1: 0.4}
+	if len(body.Faces) != 1 || body.Faces[0] != want {
+		t.Errorf("faces = %v, want [%v]", body.Faces, want)
+	}
+}
+
+func TestDeleteImageClearsFaceCache(t *testing.T) {
+	h, faces := newImageServerWithFaces(t)
+	if err := h.root.WriteFile("x.jpg", makeJPEG(t), 0o600); err != nil {
+		t.Fatalf("write: %v", err)
+	}
+	h.lib.Add("x.jpg")
+	faces.Set("x.jpg", []library.FaceBox{{X0: 0, Y0: 0, X1: 1, Y1: 1}})
+
+	rec := httptest.NewRecorder()
+	h.handler.ServeHTTP(rec, httptest.NewRequest(http.MethodDelete, "/api/images/x.jpg", nil))
+	if rec.Code != http.StatusNoContent {
+		t.Fatalf("status = %d, want 204, body %s", rec.Code, rec.Body)
+	}
+	if _, processed := faces.Faces("x.jpg"); processed {
+		t.Error("deleted image's face cache entry should be cleared")
 	}
 }
 

@@ -82,6 +82,12 @@ func TestLoadDefaults(t *testing.T) {
 	if cfg.Slideshow.Window != (config.WindowConfig{}) {
 		t.Errorf("slideshow window: got %+v, want all-zero", cfg.Slideshow.Window)
 	}
+	if cfg.Slideshow.AutoCrop {
+		t.Error("slideshow auto_crop should default to false")
+	}
+	if cfg.Slideshow.MaxCropPercent != 20 {
+		t.Errorf("slideshow max_crop_percent: got %v, want 20", cfg.Slideshow.MaxCropPercent)
+	}
 	if cfg.Library.Immich.SyncInterval.Duration != 15*time.Minute {
 		t.Errorf("immich sync_interval: got %v, want 15m", cfg.Library.Immich.SyncInterval)
 	}
@@ -127,6 +133,25 @@ blurred_fill = true
 	}
 	if !cfg.Slideshow.BlurredFill {
 		t.Error("slideshow.blurred_fill: got false, want true")
+	}
+}
+
+func TestLoadSlideshowAutoCrop(t *testing.T) {
+	dir := t.TempDir()
+	userPath := write(t, dir, "config.toml", `
+[slideshow]
+auto_crop = true
+max_crop_percent = 35
+`)
+	cfg, err := config.Load(userPath, filepath.Join(dir, "overrides.toml"))
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if !cfg.Slideshow.AutoCrop {
+		t.Error("slideshow.auto_crop: got false, want true")
+	}
+	if cfg.Slideshow.MaxCropPercent != 35 {
+		t.Errorf("slideshow.max_crop_percent: got %v, want 35", cfg.Slideshow.MaxCropPercent)
 	}
 }
 
@@ -361,6 +386,32 @@ func TestValidateWindow(t *testing.T) {
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
 			cfg := &config.Config{Slideshow: config.SlideshowConfig{Window: tc.window}}
+			err := cfg.Validate()
+			if tc.wantErr && err == nil {
+				t.Fatal("expected error, got nil")
+			}
+			if !tc.wantErr && err != nil {
+				t.Fatalf("unexpected error: %v", err)
+			}
+		})
+	}
+}
+
+func TestValidateMaxCropPercent(t *testing.T) {
+	cases := []struct {
+		name    string
+		pct     float64
+		wantErr bool
+	}{
+		{"zero", 0, false},
+		{"default", 20, false},
+		{"max", 100, false},
+		{"negative", -1, true},
+		{"over 100", 100.1, true},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			cfg := &config.Config{Slideshow: config.SlideshowConfig{MaxCropPercent: tc.pct}}
 			err := cfg.Validate()
 			if tc.wantErr && err == nil {
 				t.Fatal("expected error, got nil")

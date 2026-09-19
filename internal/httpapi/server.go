@@ -84,6 +84,12 @@ type Config struct {
 	KioskBeater KioskBeater // required
 	// Aspect caches per-image dimensions; nil disables split-screen metadata.
 	Aspect *library.AspectStore
+	// Faces caches per-image detected face boxes; nil disables the /focus route's data (still
+	// returns detected:false).
+	Faces *library.FaceStore
+	// FacesTrigger, when non-nil, is poked (non-blocking) after an upload so the background
+	// face detector picks it up promptly instead of waiting for its next backlog pass.
+	FacesTrigger chan<- struct{}
 	// Order persists the canonical image order; nil disables order saving.
 	Order *library.OrderStore
 	// Planner rebuilds slide plans and receives the kiosk's screen aspect; nil in
@@ -137,6 +143,8 @@ type server struct {
 	imagesRoot    *os.Root
 	kioskBeater   KioskBeater
 	aspect        *library.AspectStore
+	faces         *library.FaceStore
+	facesTrigger  chan<- struct{}
 	order         *library.OrderStore
 	planner       SlidePlanner
 	backend       string
@@ -182,6 +190,8 @@ func NewServer(cfg Config) http.Handler {
 		imagesRoot:    cfg.ImagesRoot,
 		kioskBeater:   cfg.KioskBeater,
 		aspect:        cfg.Aspect,
+		faces:         cfg.Faces,
+		facesTrigger:  cfg.FacesTrigger,
 		order:         cfg.Order,
 		planner:       cfg.Planner,
 		backend:       backend,

@@ -516,6 +516,65 @@
         },
         "type": "object"
       },
+      "FaceBoxDTO": {
+        "additionalProperties": false,
+        "properties": {
+          "x0": {
+            "format": "double",
+            "type": "number"
+          },
+          "x1": {
+            "format": "double",
+            "type": "number"
+          },
+          "y0": {
+            "format": "double",
+            "type": "number"
+          },
+          "y1": {
+            "format": "double",
+            "type": "number"
+          }
+        },
+        "required": [
+          "x0",
+          "y0",
+          "x1",
+          "y1"
+        ],
+        "type": "object"
+      },
+      "ImageFocusOutputBody": {
+        "additionalProperties": false,
+        "properties": {
+          "$schema": {
+            "description": "A URL to the JSON Schema for this object.",
+            "examples": [
+              "https://example.com/schemas/ImageFocusOutputBody.json"
+            ],
+            "format": "uri",
+            "readOnly": true,
+            "type": "string"
+          },
+          "detected": {
+            "type": "boolean"
+          },
+          "faces": {
+            "items": {
+              "$ref": "#/components/schemas/FaceBoxDTO"
+            },
+            "type": [
+              "array",
+              "null"
+            ]
+          }
+        },
+        "required": [
+          "detected",
+          "faces"
+        ],
+        "type": "object"
+      },
       "ImageItem": {
         "additionalProperties": false,
         "properties": {
@@ -627,6 +686,9 @@
       "KioskPayload": {
         "additionalProperties": false,
         "properties": {
+          "auto_crop": {
+            "type": "boolean"
+          },
           "blurred_fill": {
             "type": "boolean"
           },
@@ -638,6 +700,10 @@
           },
           "locale": {
             "type": "string"
+          },
+          "max_crop_percent": {
+            "format": "double",
+            "type": "number"
           },
           "sensors": {
             "items": {
@@ -670,7 +736,9 @@
           "weather",
           "labels",
           "blurred_fill",
-          "window"
+          "window",
+          "auto_crop",
+          "max_crop_percent"
         ],
         "type": "object"
       },
@@ -1123,6 +1191,10 @@
       "SlideshowDTO": {
         "additionalProperties": false,
         "properties": {
+          "auto_crop": {
+            "description": "Shift the crop window within Window's bounds to keep detected faces in frame, reducing blur margin",
+            "type": "boolean"
+          },
           "blurred_fill": {
             "description": "Show each photo at its full aspect ratio with a blurred, scaled copy of itself filling the gap instead of cropping",
             "type": "boolean"
@@ -1133,6 +1205,13 @@
           "interval": {
             "description": "Image advance interval, e.g. \"2m\"",
             "type": "string"
+          },
+          "max_crop_percent": {
+            "description": "Cap on how far auto_crop may zoom in past the no-crop fit, as a percent of that fit's scale",
+            "format": "double",
+            "maximum": 100,
+            "minimum": 0,
+            "type": "number"
           },
           "randomize": {
             "type": "boolean"
@@ -1152,6 +1231,8 @@
           "split_screen",
           "blurred_fill",
           "window",
+          "auto_crop",
+          "max_crop_percent",
           "images_dir"
         ],
         "type": "object"
@@ -2944,6 +3025,47 @@
           }
         },
         "summary": "Serve an image file"
+      }
+    },
+    "/img/{name}/focus": {
+      "get": {
+        "operationId": "image-focus",
+        "parameters": [
+          {
+            "description": "Image filename",
+            "in": "path",
+            "name": "name",
+            "required": true,
+            "schema": {
+              "description": "Image filename",
+              "pattern": "^[a-zA-Z0-9_.~-]+\\.(jpe?g|png)$",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ImageFocusOutputBody"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorModel"
+                }
+              }
+            },
+            "description": "Error"
+          }
+        },
+        "summary": "Get detected face boxes for an image"
       }
     }
   }

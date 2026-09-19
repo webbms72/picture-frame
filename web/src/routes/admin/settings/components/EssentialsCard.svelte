@@ -28,6 +28,10 @@
 	const randomizeChanged = $derived(slideshow.randomize !== savedSlideshow.randomize);
 	const splitChanged = $derived(slideshow.split_screen !== savedSlideshow.split_screen);
 	const blurredFillChanged = $derived(slideshow.blurred_fill !== savedSlideshow.blurred_fill);
+	const autoCropChanged = $derived(slideshow.auto_crop !== savedSlideshow.auto_crop);
+	const maxCropPercentChanged = $derived(
+		slideshow.max_crop_percent !== savedSlideshow.max_crop_percent
+	);
 	// structural compare so a new label field is covered without touching this
 	const labelsChanged = $derived(!eq(display.labels, savedDisplay.labels));
 	// structural compare, same as labelsChanged, for the four window sides as a group
@@ -133,6 +137,28 @@
 				/>
 			</div>
 		</Field>
+
+		<ToggleRow
+			label="Auto-crop to subject"
+			checked={slideshow.auto_crop}
+			changed={autoCropChanged}
+			onchange={(v) => (slideshow.auto_crop = v)}
+			onrevert={() => (slideshow.auto_crop = savedSlideshow.auto_crop)}
+			testId="auto-crop-switch"
+		/>
+
+		{#if slideshow.auto_crop}
+			<PercentSlider
+				label="Max crop"
+				help="Caps how aggressively auto-crop is allowed to zoom in."
+				value={slideshow.max_crop_percent}
+				max={100}
+				changed={maxCropPercentChanged}
+				onchange={(v) => (slideshow.max_crop_percent = v)}
+				onrevert={() => (slideshow.max_crop_percent = savedSlideshow.max_crop_percent)}
+				testId="max-crop-slider"
+			/>
+		{/if}
 	{/if}
 
 	<DurationSlider

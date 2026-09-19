@@ -27,6 +27,8 @@ type Syncer struct {
 	advance  Advancer
 	trigger  chan struct{}
 	aspect   *AspectStore // optional: caches per-image dimensions
+	faces    *FaceStore   // optional: caches per-image detected face boxes
+	onSync   func()       // optional: called after every sync attempt, changed or not
 
 	mu     sync.Mutex
 	status Status
@@ -38,6 +40,17 @@ type SyncerOption func(*Syncer)
 // WithAspectStore records downloaded dimensions and clears them on removal.
 func WithAspectStore(a *AspectStore) SyncerOption {
 	return func(s *Syncer) { s.aspect = a }
+}
+
+// WithFaceStore records detected face boxes and clears them on removal.
+func WithFaceStore(f *FaceStore) SyncerOption {
+	return func(s *Syncer) { s.faces = f }
+}
+
+// WithSyncHook calls f after every sync attempt (whether or not anything changed). Used to
+// prod the background face detector so it picks up new images promptly.
+func WithSyncHook(f func()) SyncerOption {
+	return func(s *Syncer) { s.onSync = f }
 }
 
 // Status reports the latest sync outcome for the admin UI.
@@ -160,6 +173,11 @@ func (s *Syncer) syncOnce(ctx context.Context) {
 			s.log.Warn("library: flush aspect index failed", "err", err)
 		}
 	}
+	if len(stale) > 0 && s.faces != nil {
+		if err := s.faces.Flush(); err != nil {
+			s.log.Warn("library: flush face index failed", "err", err)
+		}
+	}
 	if wasEmpty && added > 0 && s.advance != nil {
 		s.advance.Next()
 	}
@@ -167,6 +185,9 @@ func (s *Syncer) syncOnce(ctx context.Context) {
 		s.setPartial(len(remote), failed)
 	} else {
 		s.setOK(len(remote))
+	}
+	if s.onSync != nil {
+		s.onSync()
 	}
 }
 
@@ -270,6 +291,9 @@ func (s *Syncer) removeFile(f localFile) {
 	s.lib.Remove(f.name)
 	if s.aspect != nil {
 		s.aspect.Delete(f.name)
+	}
+	if s.faces != nil {
+		s.faces.Delete(f.name)
 	}
 }
 

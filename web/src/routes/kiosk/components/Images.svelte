@@ -31,6 +31,8 @@
 
 	const blurredFill = $derived(sse.kiosk?.blurred_fill ?? false);
 	const win = $derived(sse.kiosk?.window);
+	const autoCrop = $derived(sse.kiosk?.auto_crop ?? false);
+	const maxCropPercent = $derived(sse.kiosk?.max_crop_percent);
 
 	onDestroy(() => fader.stop());
 </script>
@@ -42,6 +44,8 @@
 	images={bottomNames}
 	{blurredFill}
 	window={win}
+	{autoCrop}
+	{maxCropPercent}
 	testId="kiosk-img-bottom"
 	onAllLoad={() => fader.onBottomLoad()}
 	onError={() => fader.onBottomError()}
@@ -59,6 +63,8 @@
 	images={topNames}
 	{blurredFill}
 	window={win}
+	{autoCrop}
+	{maxCropPercent}
 	onAllLoad={() => fader.onTopLoad()}
 	onError={() => fader.onTopError()}
 />

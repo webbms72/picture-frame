@@ -66,6 +66,9 @@ func (s SlideshowConfig) validate() error {
 	if s.SplitScreen && s.PairThreshold <= 1.0 {
 		return fmt.Errorf("pair_threshold must be > 1 when split_screen is enabled, got %v", s.PairThreshold)
 	}
+	if s.MaxCropPercent < 0 || s.MaxCropPercent > 100 {
+		return fmt.Errorf("max_crop_percent must be 0-100, got %v", s.MaxCropPercent)
+	}
 	return s.Window.validate()
 }
 

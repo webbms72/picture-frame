@@ -13,6 +13,7 @@ import (
 	"strconv"
 	"strings"
 	"sync"
+	"sync/atomic"
 	"testing"
 	"testing/synctest"
 	"time"
@@ -162,6 +163,20 @@ func TestSyncDownloadsNewAssets(t *testing.T) {
 	}
 	if adv.n != 1 {
 		t.Errorf("advancer called %d times, want 1 (empty → non-empty)", adv.n)
+	}
+}
+
+func TestSyncHookCalledAfterEveryAttempt(t *testing.T) {
+	root, lib := setup(t)
+	r := &fakeRemote{}
+	r.set(asset(idA, 1))
+	var calls atomic.Int32
+	s := library.NewSyncer(testutil.NopLogger(), r, lib, root, time.Hour, &fakeAdvancer{},
+		library.WithSyncHook(func() { calls.Add(1) }))
+	runOnce(t, s)
+
+	if got := calls.Load(); got != 1 {
+		t.Errorf("sync hook calls = %d, want 1", got)
 	}
 }
 

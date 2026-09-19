@@ -198,6 +198,22 @@ export type ErrorModel = {
     type?: string;
 };
 
+export type FaceBoxDto = {
+    x0: number;
+    x1: number;
+    y0: number;
+    y1: number;
+};
+
+export type ImageFocusOutputBody = {
+    /**
+     * A URL to the JSON Schema for this object.
+     */
+    readonly $schema?: string;
+    detected: boolean;
+    faces: Array<FaceBoxDto> | null;
+};
+
 export type ImageItem = {
     /**
      * A URL to the JSON Schema for this object.
@@ -248,10 +264,12 @@ export type KioskLabelsDto = {
 };
 
 export type KioskPayload = {
+    auto_crop: boolean;
     blurred_fill: boolean;
     hide_clock_date: boolean;
     labels: KioskLabels;
     locale: string;
+    max_crop_percent: number;
     sensors: Array<string> | null;
     timezone: string;
     version: string;
@@ -438,6 +456,10 @@ export type SetScreenRequest = {
 
 export type SlideshowDto = {
     /**
+     * Shift the crop window within Window's bounds to keep detected faces in frame, reducing blur margin
+     */
+    auto_crop: boolean;
+    /**
      * Show each photo at its full aspect ratio with a blurred, scaled copy of itself filling the gap instead of cropping
      */
     blurred_fill: boolean;
@@ -446,6 +468,10 @@ export type SlideshowDto = {
      * Image advance interval, e.g. "2m"
      */
     interval: string;
+    /**
+     * Cap on how far auto_crop may zoom in past the no-crop fit, as a percent of that fit's scale
+     */
+    max_crop_percent: number;
     randomize: boolean;
     /**
      * Pair mismatched-orientation photos side-by-side
@@ -774,6 +800,11 @@ export type ErrorModelWritable = {
      * A URI reference to human-readable documentation for the error.
      */
     type?: string;
+};
+
+export type ImageFocusOutputBodyWritable = {
+    detected: boolean;
+    faces: Array<FaceBoxDto> | null;
 };
 
 export type ImageItemWritable = {
@@ -2007,3 +2038,33 @@ export type ServeImageResponses = {
      */
     200: unknown;
 };
+
+export type ImageFocusData = {
+    body?: never;
+    path: {
+        /**
+         * Image filename
+         */
+        name: string;
+    };
+    query?: never;
+    url: '/img/{name}/focus';
+};
+
+export type ImageFocusErrors = {
+    /**
+     * Error
+     */
+    default: ErrorModel;
+};
+
+export type ImageFocusError = ImageFocusErrors[keyof ImageFocusErrors];
+
+export type ImageFocusResponses = {
+    /**
+     * OK
+     */
+    200: ImageFocusOutputBody;
+};
+
+export type ImageFocusResponse = ImageFocusResponses[keyof ImageFocusResponses];

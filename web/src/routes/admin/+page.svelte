@@ -145,6 +145,8 @@
 			shuffle={data.config?.slideshow.randomize ?? false}
 			blurredFill={data.config?.slideshow.blurred_fill ?? false}
 			window={data.config?.slideshow.window}
+			autoCrop={data.config?.slideshow.auto_crop ?? false}
+			maxCropPercent={data.config?.slideshow.max_crop_percent}
 		/>
 
 		<div class="flex flex-col gap-3 md:h-full">

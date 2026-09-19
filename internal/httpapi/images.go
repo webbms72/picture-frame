@@ -68,6 +68,27 @@ type ServeImageInput struct {
 	Name string `path:"name" pattern:"^[a-zA-Z0-9_.~-]+\\.(jpe?g|png)$" doc:"Image filename"`
 }
 
+type ImageFocusInput struct {
+	Name string `path:"name" pattern:"^[a-zA-Z0-9_.~-]+\\.(jpe?g|png)$" doc:"Image filename"`
+}
+
+// FaceBoxDTO is one detected face, normalized 0-1 relative to the image's full dimensions.
+type FaceBoxDTO struct {
+	X0 float64 `json:"x0"`
+	Y0 float64 `json:"y0"`
+	X1 float64 `json:"x1"`
+	Y1 float64 `json:"y1"`
+}
+
+type ImageFocusOutput struct {
+	Body struct {
+		// Detected is true once face detection has processed this image, even if it found
+		// no faces; false means detection hasn't run yet (e.g. just uploaded).
+		Detected bool         `json:"detected"`
+		Faces    []FaceBoxDTO `json:"faces"`
+	}
+}
+
 func (s *server) registerImageRoutes(api huma.API) {
 	huma.Register(api, huma.Operation{
 		OperationID: "list-images",
@@ -115,6 +136,13 @@ func (s *server) registerImageRoutes(api huma.API) {
 		Path:        "/img/{name}",
 		Summary:     "Serve an image file",
 	}, s.handleServeImage)
+
+	huma.Register(api, huma.Operation{
+		OperationID: "image-focus",
+		Method:      http.MethodGet,
+		Path:        "/img/{name}/focus",
+		Summary:     "Get detected face boxes for an image",
+	}, s.handleImageFocus)
 }
 
 func (s *server) handleDeleteImage(_ context.Context, input *DeleteImageInput) (*struct{}, error) {
@@ -135,6 +163,9 @@ func (s *server) handleDeleteImage(_ context.Context, input *DeleteImageInput) (
 		// never read (the planner queries live names only), and the next upload/sync
 		// flush prunes it. Avoids a full-index rewrite per item during bulk delete.
 		s.aspect.Delete(input.Name)
+	}
+	if s.faces != nil {
+		s.faces.Delete(input.Name)
 	}
 	if s.lib.Len() == 0 {
 		s.bus.Publish(state.Event{
@@ -180,6 +211,20 @@ func (s *server) handleServeImage(_ context.Context, input *ServeImageInput) (*h
 			http.ServeContent(w, r, input.Name, info.ModTime(), f)
 		},
 	}, nil
+}
+
+func (s *server) handleImageFocus(_ context.Context, input *ImageFocusInput) (*ImageFocusOutput, error) {
+	out := &ImageFocusOutput{}
+	if s.faces == nil {
+		return out, nil
+	}
+	faces, processed := s.faces.Faces(input.Name)
+	out.Body.Detected = processed
+	out.Body.Faces = make([]FaceBoxDTO, len(faces))
+	for i, f := range faces {
+		out.Body.Faces[i] = FaceBoxDTO{X0: f.X0, Y0: f.Y0, X1: f.X1, Y1: f.Y1}
+	}
+	return out, nil
 }
 
 func (s *server) registerSlideshowRoutes(api huma.API) {
@@ -288,6 +333,7 @@ func (s *server) handleUploadImage(_ context.Context, input *UploadImageInput) (
 
 	wasEmpty := s.lib.Len() == 0
 	s.lib.Add(name)
+	s.triggerFaceDetection()
 	s.persistOrder()
 	if wasEmpty && s.slideshow != nil {
 		s.slideshow.Next()
@@ -303,6 +349,16 @@ func (s *server) recordAspect(name string, w, h int) {
 	s.aspect.Set(name, w, h)
 	if err := s.aspect.Flush(); err != nil {
 		s.log.Warn("failed to persist aspect index", "err", err)
+	}
+}
+
+func (s *server) triggerFaceDetection() {
+	if s.facesTrigger == nil {
+		return
+	}
+	select {
+	case s.facesTrigger <- struct{}{}:
+	default:
 	}
 }
 
