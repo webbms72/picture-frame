@@ -1,5 +1,6 @@
 <script lang="ts">
 	import type { HTMLAttributes } from 'svelte/elements';
+	import { computeAutoCrop, type FaceBox } from './cropMath';
 
 	let {
 		images,
@@ -9,6 +10,8 @@
 		vertical,
 		blurredFill,
 		window: win,
+		autoCrop,
+		maxCropPercent,
 		class: className,
 		...rest
 	}: {
@@ -23,6 +26,13 @@
 		// Percent insets (0-45) shrinking the sharp foreground photo within its pane;
 		// blurredFill only, ignored otherwise. Unset/all-zero fills the pane edge to edge.
 		window?: { top: number; right: number; bottom: number; left: number };
+		// When true, shift the crop window within `window`'s bounds to keep detected faces
+		// in frame, reducing blur margin; blurredFill only, ignored otherwise. Falls back to
+		// the plain window-inset box when no faces are known for an image (not yet processed,
+		// none detected, or the fetch failed).
+		autoCrop?: boolean;
+		// Cap on how far autoCrop may zoom in past the no-crop fit, 0-100.
+		maxCropPercent?: number;
 	} & HTMLAttributes<HTMLDivElement> = $props();
 
 	const ZERO_WINDOW = { top: 0, right: 0, bottom: 0, left: 0 };
@@ -43,6 +53,74 @@
 	}
 
 	let container: HTMLDivElement;
+
+	// Cached /focus results, keyed by image name; persists across slide changes so a name seen
+	// again (the library wraps around) never refetches. A pending or failed fetch is recorded as
+	// [] immediately, so autoCrop always falls back to the plain window-inset box rather than
+	// blocking on the network or showing a loading state.
+	let faceCache: Record<string, FaceBox[]> = $state({});
+
+	$effect(() => {
+		if (!blurredFill || !autoCrop) return;
+		for (const name of images) {
+			if (name in faceCache) continue;
+			faceCache[name] = [];
+			fetch(`/img/${encodeURIComponent(name)}/focus`)
+				.then((r) => (r.ok ? r.json() : { faces: [] }))
+				.then((data: { faces?: FaceBox[] }) => {
+					faceCache[name] = data.faces ?? [];
+				})
+				.catch(() => {
+					faceCache[name] = [];
+				});
+		}
+	});
+
+	// Per-pane live box size (px) and the loaded <img>'s natural size (px); both start at 0
+	// (unknown), in which case autoCropBox falls back to the plain window-inset box.
+	let paneW: number[] = $state([]);
+	let paneH: number[] = $state([]);
+	let naturalW: number[] = $state([]);
+	let naturalH: number[] = $state([]);
+
+	function autoCropBox(i: number, name: string) {
+		if (!autoCrop) return null;
+		const faces = faceCache[name];
+		const pw = paneW[i];
+		const ph = paneH[i];
+		const nw = naturalW[i];
+		const nh = naturalH[i];
+		if (!faces || faces.length === 0 || !pw || !ph || !nw || !nh) return null;
+
+		const boxW = pw * (1 - (w.left + w.right) / 100);
+		const boxH = ph * (1 - (w.top + w.bottom) / 100);
+		if (boxW <= 0 || boxH <= 0) return null;
+		const boxTop = (ph * w.top) / 100;
+		const boxLeft = (pw * w.left) / 100;
+
+		const box = computeAutoCrop({
+			boxW,
+			boxH,
+			imgW: nw,
+			imgH: nh,
+			faces,
+			maxCropPercent: maxCropPercent ?? 20
+		});
+		return {
+			top: boxTop + box.top,
+			left: boxLeft + box.left,
+			width: box.width,
+			height: box.height
+		};
+	}
+
+	function windowStyle(name: string, i: number): string {
+		const crop = blurredFill ? autoCropBox(i, name) : null;
+		if (crop) {
+			return `top: ${crop.top}px; left: ${crop.left}px; width: ${crop.width}px; height: ${crop.height}px`;
+		}
+		return `top: ${w.top}%; left: ${w.left}%; width: calc(100% - ${w.left}% - ${w.right}%); height: calc(100% - ${w.top}% - ${w.bottom}%)`;
+	}
 
 	// Panes are rendered by the time this effect runs; decode() makes them paint-ready
 	// (unlike complete) so the fade shows no black pane. Teardown cancels on slide change.
@@ -71,7 +149,11 @@
 >
 	{#each images as name, i (i)}
 		{#if blurredFill}
-			<div class="relative min-h-0 min-w-0 flex-1 overflow-hidden">
+			<div
+				class="relative min-h-0 min-w-0 flex-1 overflow-hidden"
+				bind:clientWidth={paneW[i]}
+				bind:clientHeight={paneH[i]}
+			>
 				<div
 					class="absolute inset-0 scale-110 bg-cover bg-center blur-2xl brightness-50"
 					style="background-image: {bgUrl(name)}"
@@ -82,7 +164,12 @@
 					alt=""
 					decoding="async"
 					class="absolute object-contain"
-					style="top: {w.top}%; left: {w.left}%; width: calc(100% - {w.left}% - {w.right}%); height: calc(100% - {w.top}% - {w.bottom}%)"
+					style={windowStyle(name, i)}
+					onload={(e) => {
+						const target = e.currentTarget as HTMLImageElement;
+						naturalW[i] = target.naturalWidth;
+						naturalH[i] = target.naturalHeight;
+					}}
 					data-testid={i === 0 ? testId : undefined}
 				/>
 			</div>

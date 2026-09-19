@@ -39,7 +39,13 @@ export function computeAutoCrop(input: AutoCropInput): AutoCropBox {
 	return positionedBox(sFinal, union, imgW, imgH, boxW, boxH);
 }
 
-function centeredBox(s: number, imgW: number, imgH: number, boxW: number, boxH: number): AutoCropBox {
+function centeredBox(
+	s: number,
+	imgW: number,
+	imgH: number,
+	boxW: number,
+	boxH: number
+): AutoCropBox {
 	const width = imgW * s;
 	const height = imgH * s;
 	return { width, height, left: (boxW - width) / 2, top: (boxH - height) / 2 };

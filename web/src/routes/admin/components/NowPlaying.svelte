@@ -12,7 +12,9 @@
 		interval,
 		shuffle,
 		blurredFill = false,
-		window: win
+		window: win,
+		autoCrop = false,
+		maxCropPercent
 	}: {
 		image: ImagePayload | null;
 		aspect?: number | null;
@@ -20,6 +22,8 @@
 		shuffle: boolean;
 		blurredFill?: boolean;
 		window?: { top: number; right: number; bottom: number; left: number };
+		autoCrop?: boolean;
+		maxCropPercent?: number;
 	} = $props();
 
 	const cadence = $derived(formatDuration(interval, 'Manual'));
@@ -44,6 +48,8 @@
 						vertical={boxAspect < 1}
 						{blurredFill}
 						window={win}
+						{autoCrop}
+						{maxCropPercent}
 						testId="now-playing-image"
 					/>
 				</div>
