@@ -38,6 +38,7 @@ require (
 	github.com/clipperhouse/displaywidth v0.11.0 // indirect
 	github.com/clipperhouse/uax29/v2 v2.7.0 // indirect
 	github.com/creack/pty v1.1.24 // indirect
+	github.com/esimov/pigo v1.4.6 // indirect
 	github.com/evilmartians/lefthook/v2 v2.1.9 // indirect
 	github.com/fatih/color v1.18.0 // indirect
 	github.com/fsnotify/fsnotify v1.9.0 // indirect
