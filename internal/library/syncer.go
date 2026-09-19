@@ -27,6 +27,7 @@ type Syncer struct {
 	advance  Advancer
 	trigger  chan struct{}
 	aspect   *AspectStore // optional: caches per-image dimensions
+	onSync   func()       // optional: called after every sync attempt, changed or not
 
 	mu     sync.Mutex
 	status Status
@@ -38,6 +39,12 @@ type SyncerOption func(*Syncer)
 // WithAspectStore records downloaded dimensions and clears them on removal.
 func WithAspectStore(a *AspectStore) SyncerOption {
 	return func(s *Syncer) { s.aspect = a }
+}
+
+// WithSyncHook calls f after every sync attempt (whether or not anything changed). Used to
+// prod the background face detector so it picks up new images promptly.
+func WithSyncHook(f func()) SyncerOption {
+	return func(s *Syncer) { s.onSync = f }
 }
 
 // Status reports the latest sync outcome for the admin UI.
@@ -167,6 +174,9 @@ func (s *Syncer) syncOnce(ctx context.Context) {
 		s.setPartial(len(remote), failed)
 	} else {
 		s.setOK(len(remote))
+	}
+	if s.onSync != nil {
+		s.onSync()
 	}
 }
 

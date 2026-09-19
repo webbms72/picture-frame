@@ -146,6 +146,24 @@ func run() error {
 		return fmt.Errorf("load aspect index: %w", err)
 	}
 
+	faceStore, err := library.LoadFaceStore(log, imagesRoot)
+	if err != nil {
+		return fmt.Errorf("load face index: %w", err)
+	}
+	faceDetector, err := library.NewDetector(log, faceStore, func() []string {
+		imgs := lib.List()
+		names := make([]string, len(imgs))
+		for i, img := range imgs {
+			names[i] = img.Name
+		}
+		return names
+	}, imagesRoot)
+	if err != nil {
+		return fmt.Errorf("init face detector: %w", err)
+	}
+	faceTrigger := make(chan struct{}, 1)
+	go faceDetector.Run(ctx, faceTrigger)
+
 	orderStore, savedOrder, err := library.LoadOrderStore(log, imagesRoot)
 	if err != nil {
 		return fmt.Errorf("load order index: %w", err)
@@ -173,7 +191,7 @@ func run() error {
 		}
 	}()
 
-	librarySyncer, err := startLibrarySyncer(ctx, log, cfg, lib, imagesRoot, slides, aspectStore)
+	librarySyncer, err := startLibrarySyncer(ctx, log, cfg, lib, imagesRoot, slides, aspectStore, faceTrigger)
 	if err != nil {
 		return fmt.Errorf("start library syncer: %w", err)
 	}
@@ -244,6 +262,8 @@ func run() error {
 			Slideshow:     slides,
 			ImagesRoot:    imagesRoot,
 			Aspect:        aspectStore,
+			Faces:         faceStore,
+			FacesTrigger:  faceTrigger,
 			Order:         orderStore,
 			Planner:       planner,
 			KioskBeater:   kioskWatch,

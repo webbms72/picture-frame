@@ -73,6 +73,11 @@ type KioskPayload struct {
 	BlurredFill bool `json:"blurred_fill"`
 	// Window insets the sharp foreground photo within its pane (BlurredFill only).
 	Window Window `json:"window"`
+	// AutoCrop shifts the crop window within Window's bounds to keep detected faces in
+	// frame, reducing blur margin.
+	AutoCrop bool `json:"auto_crop"`
+	// MaxCropPercent caps how far AutoCrop may zoom in past the no-crop fit.
+	MaxCropPercent float64 `json:"max_crop_percent"`
 }
 
 // KioskLabels mirrors config.KioskLabelsConfig; empty strings hide the caption.

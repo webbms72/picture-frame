@@ -34,6 +34,8 @@ export function createEmptyConfig(): ConfigResponseBody {
 			split_screen: true,
 			blurred_fill: false,
 			window: { top: 0, right: 0, bottom: 0, left: 0 },
+			auto_crop: false,
+			max_crop_percent: 20,
 			images_dir: 'images'
 		},
 		library: {

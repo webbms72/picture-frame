@@ -111,12 +111,14 @@ func windowToState(c config.WindowConfig) state.Window {
 
 // SlideshowDTO maps config.SlideshowConfig.
 type SlideshowDTO struct {
-	Interval    string    `json:"interval" doc:"Image advance interval, e.g. \"2m\""`
-	Randomize   bool      `json:"randomize"`
-	SplitScreen bool      `json:"split_screen" doc:"Pair mismatched-orientation photos side-by-side"`
-	BlurredFill bool      `json:"blurred_fill" doc:"Show each photo at its full aspect ratio with a blurred, scaled copy of itself filling the gap instead of cropping"`
-	Window      WindowDTO `json:"window" doc:"Insets the sharp foreground photo from its pane's edges (blurred_fill only); the blur still fills the full pane"`
-	ImagesDir   string    `json:"images_dir"`
+	Interval       string    `json:"interval" doc:"Image advance interval, e.g. \"2m\""`
+	Randomize      bool      `json:"randomize"`
+	SplitScreen    bool      `json:"split_screen" doc:"Pair mismatched-orientation photos side-by-side"`
+	BlurredFill    bool      `json:"blurred_fill" doc:"Show each photo at its full aspect ratio with a blurred, scaled copy of itself filling the gap instead of cropping"`
+	Window         WindowDTO `json:"window" doc:"Insets the sharp foreground photo from its pane's edges (blurred_fill only); the blur still fills the full pane"`
+	AutoCrop       bool      `json:"auto_crop" doc:"Shift the crop window within Window's bounds to keep detected faces in frame, reducing blur margin"`
+	MaxCropPercent float64   `json:"max_crop_percent" minimum:"0" maximum:"100" doc:"Cap on how far auto_crop may zoom in past the no-crop fit, as a percent of that fit's scale"`
+	ImagesDir      string    `json:"images_dir"`
 }
 
 // WindowDTO maps config.WindowConfig: percent insets (0-45) from each pane edge.
@@ -222,12 +224,14 @@ func toDTO(cfg config.Config) ConfigDTO {
 			Labels:        labelsToDTO(cfg.Display.Labels),
 		},
 		Slideshow: SlideshowDTO{
-			Interval:    durString(cfg.Slideshow.Interval.Duration),
-			Randomize:   cfg.Slideshow.Randomize,
-			SplitScreen: cfg.Slideshow.SplitScreen,
-			BlurredFill: cfg.Slideshow.BlurredFill,
-			Window:      windowToDTO(cfg.Slideshow.Window),
-			ImagesDir:   cfg.Slideshow.ImagesDir,
+			Interval:       durString(cfg.Slideshow.Interval.Duration),
+			Randomize:      cfg.Slideshow.Randomize,
+			SplitScreen:    cfg.Slideshow.SplitScreen,
+			BlurredFill:    cfg.Slideshow.BlurredFill,
+			Window:         windowToDTO(cfg.Slideshow.Window),
+			AutoCrop:       cfg.Slideshow.AutoCrop,
+			MaxCropPercent: cfg.Slideshow.MaxCropPercent,
+			ImagesDir:      cfg.Slideshow.ImagesDir,
 		},
 		Library: LibraryDTO{
 			Backend: cfg.Library.Backend,
@@ -368,6 +372,8 @@ func applySlideshowDTO(dst *config.SlideshowConfig, dto SlideshowDTO) error {
 	dst.SplitScreen = dto.SplitScreen
 	dst.BlurredFill = dto.BlurredFill
 	dst.Window = windowFromDTO(dto.Window)
+	dst.AutoCrop = dto.AutoCrop
+	dst.MaxCropPercent = dto.MaxCropPercent
 	// The toggle-only DTO omits pair_threshold; coerce an invalid running value so
 	// enabling split-screen can't produce a config that fails Validate (>1 required).
 	if dst.SplitScreen && dst.PairThreshold <= 1 {
@@ -513,15 +519,17 @@ func parseDurationOr(s, field string, fallback config.Duration) (config.Duration
 // (see startup.WeatherEnabled) gates the weather UI.
 func KioskEventPayload(cfg config.Config, weatherActive bool) state.KioskPayload {
 	return state.KioskPayload{
-		Version:       version.Version,
-		Locale:        cfg.Display.Locale,
-		HideClockDate: cfg.Display.HideClockDate,
-		Timezone:      cfg.Display.Timezone,
-		Sensors:       config.SensorKeys(cfg.Sensors),
-		Weather:       weatherActive,
-		Labels:        labelsToState(cfg.Display.Labels),
-		BlurredFill:   cfg.Slideshow.BlurredFill,
-		Window:        windowToState(cfg.Slideshow.Window),
+		Version:        version.Version,
+		Locale:         cfg.Display.Locale,
+		HideClockDate:  cfg.Display.HideClockDate,
+		Timezone:       cfg.Display.Timezone,
+		Sensors:        config.SensorKeys(cfg.Sensors),
+		Weather:        weatherActive,
+		Labels:         labelsToState(cfg.Display.Labels),
+		BlurredFill:    cfg.Slideshow.BlurredFill,
+		Window:         windowToState(cfg.Slideshow.Window),
+		AutoCrop:       cfg.Slideshow.AutoCrop,
+		MaxCropPercent: cfg.Slideshow.MaxCropPercent,
 	}
 }
 
