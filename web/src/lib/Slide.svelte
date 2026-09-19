@@ -54,25 +54,27 @@
 
 	let container: HTMLDivElement;
 
-	// Cached /focus results, keyed by image name; persists across slide changes so a name seen
-	// again (the library wraps around) never refetches. A pending or failed fetch is recorded as
-	// [] immediately, so autoCrop always falls back to the plain window-inset box rather than
-	// blocking on the network or showing a loading state.
+	// Cached /focus results, keyed by image name; persists across slide changes so a name the
+	// worker has already finished detecting on never refetches. A photo not yet processed (or a
+	// failed fetch) is recorded as [] so autoCrop falls back to the plain window-inset box rather
+	// than blocking on the network or showing a loading state, but is NOT marked requested — the
+	// next time this name comes around in the rotation, it's fetched again, picking up the
+	// background detector's result once it catches up.
 	let faceCache: Record<string, FaceBox[]> = $state({});
-	// Non-reactive: tracks which names have been requested so the effect below doesn't
-	// read faceCache (a $state object it also writes to), which would make each write
-	// re-trigger the same effect for every image already requested that pass.
-	const requested: Record<string, boolean> = {};
+	// Non-reactive: tracks which names are done (detected=true, no need to ever refetch) so the
+	// effect below doesn't read faceCache (a $state object it also writes to), which would make
+	// each write re-trigger the same effect for every image already requested that pass.
+	const done: Record<string, boolean> = {};
 
 	$effect(() => {
 		if (!blurredFill || !autoCrop) return;
 		for (const name of images) {
-			if (requested[name]) continue;
-			requested[name] = true;
+			if (done[name]) continue;
 			fetch(`/img/${encodeURIComponent(name)}/focus`)
-				.then((r) => (r.ok ? r.json() : { faces: [] }))
-				.then((data: { faces?: FaceBox[] }) => {
+				.then((r) => (r.ok ? r.json() : { detected: false, faces: [] }))
+				.then((data: { detected?: boolean; faces?: FaceBox[] }) => {
 					faceCache[name] = data.faces ?? [];
+					if (data.detected) done[name] = true;
 				})
 				.catch(() => {
 					faceCache[name] = [];

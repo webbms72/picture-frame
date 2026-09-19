@@ -173,6 +173,11 @@ func (s *Syncer) syncOnce(ctx context.Context) {
 			s.log.Warn("library: flush aspect index failed", "err", err)
 		}
 	}
+	if len(stale) > 0 && s.faces != nil {
+		if err := s.faces.Flush(); err != nil {
+			s.log.Warn("library: flush face index failed", "err", err)
+		}
+	}
 	if wasEmpty && added > 0 && s.advance != nil {
 		s.advance.Next()
 	}
