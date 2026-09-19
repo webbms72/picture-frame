@@ -71,6 +71,11 @@ func (d *Detector) processBacklog(ctx context.Context) {
 	if len(missing) == 0 {
 		return
 	}
+	defer func() {
+		if err := d.store.Flush(); err != nil {
+			d.log.Warn("face store flush failed", "err", err)
+		}
+	}()
 	for _, name := range missing {
 		if ctx.Err() != nil {
 			return
@@ -86,9 +91,6 @@ func (d *Detector) processBacklog(ctx context.Context) {
 			return
 		case <-time.After(detectionPause):
 		}
-	}
-	if err := d.store.Flush(); err != nil {
-		d.log.Warn("face store flush failed", "err", err)
 	}
 }
 

@@ -118,7 +118,7 @@ func libraryDir(cfg *config.Config) string {
 
 // startLibrarySyncer starts the remote-backend syncer in a goroutine when one
 // is configured and returns it for status exposure. fs backend → (nil, nil).
-func startLibrarySyncer(ctx context.Context, log *slog.Logger, cfg *config.Config, lib *library.Library, root *os.Root, slides *slideshow.Slideshow, aspect *library.AspectStore, faceTrigger chan<- struct{}) (*library.Syncer, error) {
+func startLibrarySyncer(ctx context.Context, log *slog.Logger, cfg *config.Config, lib *library.Library, root *os.Root, slides *slideshow.Slideshow, aspect *library.AspectStore, faces *library.FaceStore, faceTrigger chan<- struct{}) (*library.Syncer, error) {
 	if libraryBackend(cfg) != config.BackendImmich {
 		return nil, nil
 	}
@@ -136,6 +136,7 @@ func startLibrarySyncer(ctx context.Context, log *slog.Logger, cfg *config.Confi
 	}
 	syncer := library.NewSyncer(log, client, lib, root, interval, slides,
 		library.WithAspectStore(aspect),
+		library.WithFaceStore(faces),
 		library.WithSyncHook(func() {
 			select {
 			case faceTrigger <- struct{}{}:

@@ -330,10 +330,10 @@ func (s *server) handleUploadImage(_ context.Context, input *UploadImageInput) (
 		w, h = library.ImageDimensions(s.imagesRoot, name)
 	}
 	s.recordAspect(name, w, h)
-	s.triggerFaceDetection()
 
 	wasEmpty := s.lib.Len() == 0
 	s.lib.Add(name)
+	s.triggerFaceDetection()
 	s.persistOrder()
 	if wasEmpty && s.slideshow != nil {
 		s.slideshow.Next()

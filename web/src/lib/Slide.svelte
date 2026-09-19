@@ -59,12 +59,16 @@
 	// [] immediately, so autoCrop always falls back to the plain window-inset box rather than
 	// blocking on the network or showing a loading state.
 	let faceCache: Record<string, FaceBox[]> = $state({});
+	// Non-reactive: tracks which names have been requested so the effect below doesn't
+	// read faceCache (a $state object it also writes to), which would make each write
+	// re-trigger the same effect for every image already requested that pass.
+	const requested: Record<string, boolean> = {};
 
 	$effect(() => {
 		if (!blurredFill || !autoCrop) return;
 		for (const name of images) {
-			if (name in faceCache) continue;
-			faceCache[name] = [];
+			if (requested[name]) continue;
+			requested[name] = true;
 			fetch(`/img/${encodeURIComponent(name)}/focus`)
 				.then((r) => (r.ok ? r.json() : { faces: [] }))
 				.then((data: { faces?: FaceBox[] }) => {
@@ -82,6 +86,13 @@
 	let paneH: number[] = $state([]);
 	let naturalW: number[] = $state([]);
 	let naturalH: number[] = $state([]);
+	// Panes are keyed by index and their <img> element is reused across slide
+	// transitions, so naturalW/H[i] can still hold the PREVIOUS photo's dimensions
+	// for one render after `name` changes, until that element's onload fires for the
+	// new src. Tracking which name each slot's naturalW/H actually belongs to lets
+	// autoCropBox fall back to the plain window box instead of combining the new
+	// photo's faces with the old photo's dimensions.
+	let loadedName: string[] = $state([]);
 
 	function autoCropBox(i: number, name: string) {
 		if (!autoCrop) return null;
@@ -91,6 +102,7 @@
 		const nw = naturalW[i];
 		const nh = naturalH[i];
 		if (!faces || faces.length === 0 || !pw || !ph || !nw || !nh) return null;
+		if (loadedName[i] !== name) return null;
 
 		const boxW = pw * (1 - (w.left + w.right) / 100);
 		const boxH = ph * (1 - (w.top + w.bottom) / 100);
@@ -169,6 +181,7 @@
 						const target = e.currentTarget as HTMLImageElement;
 						naturalW[i] = target.naturalWidth;
 						naturalH[i] = target.naturalHeight;
+						loadedName[i] = name;
 					}}
 					data-testid={i === 0 ? testId : undefined}
 				/>

@@ -191,7 +191,7 @@ func run() error {
 		}
 	}()
 
-	librarySyncer, err := startLibrarySyncer(ctx, log, cfg, lib, imagesRoot, slides, aspectStore, faceTrigger)
+	librarySyncer, err := startLibrarySyncer(ctx, log, cfg, lib, imagesRoot, slides, aspectStore, faceStore, faceTrigger)
 	if err != nil {
 		return fmt.Errorf("start library syncer: %w", err)
 	}
