@@ -7,6 +7,7 @@ require (
 	github.com/coreos/go-systemd/v22 v22.7.0
 	github.com/danielgtaylor/huma/v2 v2.39.1
 	github.com/eclipse/paho.mqtt.golang v1.5.1
+	github.com/esimov/pigo v1.4.6
 	github.com/go-chi/chi/v5 v5.3.2
 	github.com/godbus/dbus/v5 v5.2.2
 	github.com/pelletier/go-toml/v2 v2.4.3
@@ -38,7 +39,6 @@ require (
 	github.com/clipperhouse/displaywidth v0.11.0 // indirect
 	github.com/clipperhouse/uax29/v2 v2.7.0 // indirect
 	github.com/creack/pty v1.1.24 // indirect
-	github.com/esimov/pigo v1.4.6 // indirect
 	github.com/evilmartians/lefthook/v2 v2.1.9 // indirect
 	github.com/fatih/color v1.18.0 // indirect
 	github.com/fsnotify/fsnotify v1.9.0 // indirect
