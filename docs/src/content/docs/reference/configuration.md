@@ -55,6 +55,8 @@ Captions under the readings on the frame. An empty value hides that caption. **(
 | `split_screen`   | boolean  | `true`   | Pair mismatched-orientation photos side by side instead of cropping. **(live)**                         |
 | `pair_threshold` | float    | `1.5`    | How far a photo's aspect must differ from the screen's to pair, as a factor (must be > 1). **(live)**   |
 | `blurred_fill`   | boolean  | `false`  | Show each photo at its full aspect ratio over a blurred, zoomed copy of itself instead of cropping. **(live)** |
+| `auto_crop`         | boolean | `false`  | Shift the display window to keep detected faces in frame, reducing the blurred margin (`blurred_fill` only). **(live)** |
+| `max_crop_percent`  | float   | `20`     | Cap on how far `auto_crop` may zoom in past the no-crop fit, 0-100. **(live)**                          |
 | `images_dir`     | string   | `images` | Root folder for image storage.                                                                          |
 
 ### `[slideshow.window]`

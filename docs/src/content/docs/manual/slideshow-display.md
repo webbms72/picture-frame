@@ -63,6 +63,23 @@ independently — set them to match your frame's actual opening, even if it's of
 **Link opposite sides** to keep Top/Bottom and Left/Right moving together while you drag, for a
 quick, even, centered shrink; it's an editing aid only, not a saved setting.
 
+### Auto-crop to subject
+
+With blurred fill on, **Auto-crop to subject** shifts where the sharp photo sits within the
+Display window to keep faces in frame while showing as little blur as possible. It only ever
+moves and zooms within the Display window's own bounds — the window's Top/Right/Bottom/Left
+settings mean exactly what they meant before, unaffected by this toggle.
+
+Detection runs once per photo, in the background, the first time each photo is seen (on upload or
+library sync); a photo with no detected face — or one not yet processed — falls back to the
+plain, centered Display window box, same as with auto-crop off. Auto-crop never crops a detected
+face out of frame; with more than one face in a photo, it keeps all of them in frame, favoring a
+box closer to center when there's room to.
+
+**Max crop** caps how aggressively auto-crop is allowed to zoom in past the no-crop fit, as a
+percent — 20% by default. Raise it to shrink the blurred margin further when a photo's faces
+allow it; lower it toward 0% to keep auto-crop's zooming closer to the original, un-cropped photo.
+
 ## Turning the screen off when idle
 
 **Turn screen off when idle** blanks the panel after a stretch with no motion, and motion
